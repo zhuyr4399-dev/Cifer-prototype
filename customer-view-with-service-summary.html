@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客户视图 - 含服务总结Tab原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 13px; color: #333; background: #f0f2f5; }
+
+  /* === 顶部导航 === */
+  .top-bar { height: 40px; background: #1a1a2e; display: flex; align-items: center; padding: 0 16px; color: #fff; }
+  .top-bar .logo { font-size: 14px; font-weight: bold; margin-right: 24px; display: flex; align-items: center; gap: 6px; }
+  .top-bar .logo .x { color: #4a90d9; font-size: 16px; font-weight: bold; }
+  .top-bar .tabs { display: flex; gap: 4px; flex: 1; }
+  .top-bar .tab-item { font-size: 12px; color: #ccc; padding: 4px 12px; background: #2a2a3e; border-radius: 4px 4px 0 0; cursor: pointer; }
+  .top-bar .tab-item.active { background: #3a3a5e; color: #fff; }
+  .top-bar .right-area { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .top-bar .user { display: flex; align-items: center; gap: 6px; color: #ccc; font-size: 12px; }
+  .top-bar .avatar { width: 24px; height: 24px; border-radius: 50%; background: #4a90d9; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; }
+
+  /* === 主布局 === */
+  .main-layout { display: flex; height: calc(100vh - 40px); }
+  .sidebar { width: 64px; background: #1e2a3a; display: flex; flex-direction: column; align-items: center; padding-top: 8px; flex-shrink: 0; }
+  .sidebar .nav-item { width: 100%; padding: 10px 0; text-align: center; color: #8899aa; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .sidebar .nav-item .icon { font-size: 16px; }
+  .sidebar .nav-item.active { color: #4a90d9; background: rgba(74,144,217,0.1); }
+  .content-area { flex: 1; position: relative; background: #fff; }
+  .bg-page { opacity: 0.3; pointer-events: none; padding: 20px; }
+
+  /* === 弹窗 === */
+  .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding-top: 20px; }
+  .modal { background: #fff; border-radius: 6px; width: 1120px; max-height: calc(100vh - 80px); box-shadow: 0 8px 30px rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow: hidden; }
+  .modal-header { padding: 12px 20px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .modal-header .title { font-size: 15px; font-weight: 600; }
+  .modal-header .close-btn { cursor: pointer; color: #999; font-size: 18px; }
+  .modal-header .close-btn:hover { color: #333; }
+
+  /* === 一级Tab（客户信息 / 服务总结） === */
+  .primary-tabs { display: flex; border-bottom: 2px solid #e8e8e8; padding: 0 20px; background: #fff; flex-shrink: 0; }
+  .primary-tab { padding: 11px 20px; font-size: 14px; color: #666; cursor: pointer; position: relative; white-space: nowrap; font-weight: 400; }
+  .primary-tab:hover { color: #333; }
+  .primary-tab.active { color: #0068ff; font-weight: 600; }
+  .primary-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 16px; right: 16px; height: 2px; background: #0068ff; border-radius: 1px; }
+  .primary-tab .badge { display: inline-block; min-width: 16px; height: 16px; line-height: 16px; text-align: center; font-size: 10px; background: #ff4d4f; color: #fff; border-radius: 8px; margin-left: 4px; padding: 0 4px; vertical-align: top; }
+
+  /* === Tab内容面板 === */
+  .tab-panel { flex: 1; overflow-y: auto; display: none; }
+  .tab-panel.active { display: block; }
+
+  /* === 区块 === */
+  .section { padding: 14px 20px; }
+  .section + .section { border-top: 8px solid #f5f5f5; }
+  .section-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .section-title::before { content: ''; width: 4px; height: 14px; background: #0068ff; border-radius: 2px; }
+
+  /* === 客户信息网格 === */
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 20px; }
+  .info-item { display: flex; font-size: 13px; padding: 3px 0; }
+  .info-item .label { color: #999; min-width: 90px; flex-shrink: 0; }
+  .info-item .value { color: #333; }
+
+  /* === 表格 === */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { padding: 8px 10px; text-align: left; font-size: 12px; color: #666; font-weight: 500; background: #fafafa; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+  .data-table td { padding: 8px 10px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+  .empty-cell { text-align: center; color: #bbb; padding: 28px 10px !important; }
+
+  /* === 注意提示 === */
+  .notice-bar { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 8px 12px; font-size: 12px; color: #ad8b00; margin-bottom: 10px; }
+
+  /* ============================================ */
+  /* === 服务总结Tab内的二级Tab === */
+  /* ============================================ */
+  .sub-tabs { display: flex; border-bottom: 1px solid #e8e8e8; padding: 0 20px; background: #fafafa; }
+  .sub-tab { padding: 9px 16px; font-size: 13px; color: #666; cursor: pointer; position: relative; }
+  .sub-tab:hover { color: #333; }
+  .sub-tab.active { color: #0068ff; font-weight: 500; }
+  .sub-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 12px; right: 12px; height: 2px; background: #0068ff; }
+
+  /* === 基础信息 === */
+  .base-info-block { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; }
+  .base-info-title { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .base-info-title::before { content: ''; width: 3px; height: 12px; background: #0068ff; border-radius: 1px; }
+  .base-info-grid { display: grid; grid-template-columns: 1fr; gap: 3px; }
+  .base-info-item { font-size: 12px; color: #666; padding: 2px 0; line-height: 1.6; }
+  .base-info-item span { color: #333; }
+
+  /* === 服务总结内容 === */
+  .summary-content { padding: 14px 20px; }
+  .summary-block-title { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .summary-block-title::before { content: ''; width: 3px; height: 12px; background: #0068ff; border-radius: 1px; }
+
+  /* === 服务分类卡片 === */
+  .svc-category { margin-bottom: 14px; border: 1px solid #f0f0f0; border-radius: 6px; overflow: hidden; }
+  .svc-category-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fafafa; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+  .svc-tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; color: #fff; flex-shrink: 0; }
+  .svc-tag.t-internet { background: #ff4d4f; }
+  .svc-tag.t-traditional { background: #1890ff; }
+  .svc-tag.t-points { background: #faad14; color: #333; }
+  .svc-tag.t-charging { background: #52c41a; }
+  .svc-tag.t-sales { background: #eb2f96; }
+  .svc-tag.t-delivery { background: #722ed1; }
+  .svc-meta { font-size: 11px; color: #999; }
+  .svc-meta .count { color: #0068ff; }
+  .svc-category-body { padding: 12px 14px; }
+  .svc-category.collapsed .svc-category-body { display: none; }
+  .svc-category.collapsed .svc-category-header .arrow { transform: rotate(-90deg); }
+  .svc-category-header .arrow { font-size: 10px; color: #999; margin-left: auto; transition: transform 0.2s; }
+
+  /* === 工单条目 === */
+  .ticket { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f5f5f5; }
+  .ticket:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .ticket-label { font-size: 12px; font-weight: 500; color: #333; margin-bottom: 5px; }
+  .ticket-text { font-size: 12px; color: #555; line-height: 1.8; }
+  .ticket-text .hl { color: #0068ff; font-weight: 500; }
+  .solution { margin-top: 6px; }
+  .solution-label { font-size: 12px; color: #999; margin-bottom: 3px; }
+  .solution-box { font-size: 12px; color: #555; line-height: 1.7; background: #f9f9f9; padding: 8px 10px; border-radius: 4px; border-left: 3px solid #0068ff; }
+  .see-issues-link { font-size: 12px; color: #999; cursor: pointer; padding: 4px 0; text-align: center; }
+
+  /* === AI回复 === */
+  .ai-reply { margin-top: 8px; padding: 8px 10px; background: #f0f7ff; border-radius: 4px; border: 1px solid #d6e4ff; }
+  .ai-reply-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .ai-badge { font-size: 10px; padding: 1px 5px; background: #0068ff; color: #fff; border-radius: 3px; }
+  .ai-author { font-size: 11px; color: #666; }
+  .ai-time { font-size: 11px; color: #999; }
+  .ai-text { font-size: 12px; color: #555; line-height: 1.6; }
+  .ai-actions { display: flex; gap: 12px; margin-top: 4px; }
+  .ai-action { font-size: 11px; color: #0068ff; cursor: pointer; }
+
+  .toggle-link { font-size: 12px; color: #0068ff; cursor: pointer; text-align: center; padding: 6px 0; }
+
+  /* === 右侧悬浮 === */
+  .float-actions { position: fixed; right: 16px; top: 50%; transform: translateY(-50%); z-index: 200; display: flex; flex-direction: column; gap: 6px; }
+  .float-btn { width: 44px; height: 44px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-size: 10px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .float-btn .f-icon { font-size: 16px; margin-bottom: 1px; }
+  .float-btn.blue { background: #0068ff; }
+  .float-btn.green { background: #52c41a; }
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部导航 ===== -->
+<div class="top-bar">
+  <div class="logo"><span class="x">X</span> 销服系统</div>
+  <div class="tabs">
+    <div class="tab-item">工作台</div>
+    <div class="tab-item active">维修旅程-粤BW999018 ×</div>
+  </div>
+  <div class="right-area">
+    <span style="color:#aaa;">🔔</span>
+    <div class="user"><div class="avatar">朱</div><span>朱嫣然 ▾</span></div>
+  </div>
+</div>
+
+<div class="main-layout">
+  <div class="sidebar">
+    <div class="nav-item"><span class="icon">📋</span>工作台</div>
+    <div class="nav-item"><span class="icon">📊</span>数智</div>
+    <div class="nav-item"><span class="icon">📝</span>订单</div>
+    <div class="nav-item"><span class="icon">📦</span>交付</div>
+    <div class="nav-item"><span class="icon">🚗</span>车辆</div>
+    <div class="nav-item active"><span class="icon">🔧</span>服务</div>
+    <div class="nav-item"><span class="icon">⚙️</span>配件</div>
+  </div>
+
+  <div class="content-area">
+    <div class="bg-page">
+      <div style="font-size:16px; font-weight:bold; margin-bottom:12px;">维修旅程</div>
+      <div style="display:flex; gap:16px; margin-bottom:16px;">
+        <span style="font-size:12px; color:#666;">W999018</span>
+        <span style="font-size:12px; color:#52c41a;">已环检</span>
+      </div>
+      <div style="height:300px; background:#f5f5f5; border-radius:4px;"></div>
+    </div>
+
+    <!-- ===== 客户视图弹窗 ===== -->
+    <div class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="title">客户视图</span>
+          <span class="close-btn">✕</span>
+        </div>
+
+        <!-- ====== 一级Tab ====== -->
+        <div class="primary-tabs">
+          <div class="primary-tab active" onclick="switchPrimaryTab(0)">基本概况</div>
+          <div class="primary-tab" onclick="switchPrimaryTab(1)">历史进线记录 <span class="badge">6</span></div>
+        </div>
+
+        <!-- ====== Tab面板1：客户信息（原有内容） ====== -->
+        <div class="tab-panel active" id="panel-custinfo">
+
+          <!-- 客户信息 -->
+          <div class="section">
+            <div class="section-title">客户信息</div>
+            <div class="info-grid">
+              <div class="info-item"><span class="label">VIN码：</span><span class="value">L1NSPGH81MA061242</span></div>
+              <div class="info-item"><span class="label">车牌号：</span><span class="value">粤BW999018</span></div>
+              <div class="info-item"><span class="label">车型名称：</span><span class="value">小鹏P7 670G</span></div>
+              <div class="info-item"><span class="label">车辆用途：</span><span class="value">非营运（个人）</span></div>
+              <div class="info-item"><span class="label">车主：</span><span class="value">朱AA</span></div>
+              <div class="info-item"><span class="label">联系电话：</span><span class="value">17500000000</span></div>
+              <div class="info-item"><span class="label">购车日期：</span><span class="value">2021-11-18 14:24:27</span></div>
+              <div class="info-item"><span class="label">交车日期：</span><span class="value">2022-01-16 00:00:00</span></div>
+              <div class="info-item"><span class="label">客户可用积分：</span><span class="value">0</span></div>
+            </div>
+          </div>
+
+          <!-- 优惠券信息 -->
+          <div class="section">
+            <div class="section-title">优惠券信息</div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>序号</th><th>是否可用</th><th style="color:#0068ff;">优惠券编码</th><th>优惠券名称</th>
+                  <th>优惠券面额（元）</th><th>优惠券状态</th><th>优惠券生效时间</th><th>优惠券失效时间</th><th>使用说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="9" class="empty-cell"><span style="font-size:28px;">📭</span><br/>暂无数据</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 权益信息查询 -->
+          <div class="section">
+            <div class="section-title">权益信息查询</div>
+            <div class="notice-bar">⚠️ 注意：车辆保修信息查询（保险延保权益除外）请通过维修旅程侧边栏【维修助手】查询</div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>序号</th><th>权益分类</th><th>一级分类</th><th>权益名称</th><th>权益编码</th>
+                  <th>状态</th><th>剩余保修里程</th><th>更换次数</th><th>开始时间</th><th>结束时间</th><th>开始里程</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td><td>整车质保</td><td>基础保修</td><td>整车质保</td><td>WR001</td>
+                  <td><span style="color:#389e0d;">有效</span></td><td>80,199 km</td><td>-</td>
+                  <td>2022-01-16</td><td>2028-01-16</td><td>0</td>
+                </tr>
+                <tr>
+                  <td>2</td><td>三电质保</td><td>核心部件</td><td>动力电池质保</td><td>WR002</td>
+                  <td><span style="color:#389e0d;">有效</span></td><td>180,199 km</td><td>-</td>
+                  <td>2022-01-16</td><td>2030-01-16</td><td>0</td>
+                </tr>
+                <tr>
+                  <td>3</td><td>延保服务</td><td>增值服务</td><td>延保2年</td><td>EX001</td>
+                  <td><span style="color:#d46b08;">待激活</span></td><td>-</td><td>-</td>
+                  <td>-</td><td>-</td><td>-</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 远程单信息 -->
+          <div class="section">
+            <div class="section-title">远程单信息</div>
+            <table class="data-table">
+              <thead>
+                <tr><th>序号</th><th>远程单号</th><th>远程类型</th><th>创建时间</th><th>状态</th><th>处理结果</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td><td style="color:#0068ff; cursor:pointer;">RM20260312001</td><td>远程诊断</td>
+                  <td>2026-03-12 09:15</td><td><span style="color:#389e0d;">已完成</span></td><td>OTA升级解决</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 协作单信息 -->
+          <div class="section">
+            <div class="section-title">协作单信息</div>
+            <table class="data-table">
+              <thead>
+                <tr><th>序号</th><th>协作单号</th><th>协作类型</th><th>创建时间</th><th>状态</th><th>协作门店</th></tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="6" class="empty-cell"><span style="font-size:28px;">📭</span><br/>暂无数据</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div><!-- /panel-custinfo -->
+
+        <!-- ====== Tab面板2：服务总结（新增） ====== -->
+        <div class="tab-panel" id="panel-summary">
+
+          <!-- 二级Tab -->
+          <div class="sub-tabs">
+            <div class="sub-tab">AI识别</div>
+            <div class="sub-tab active">服务总结</div>
+            <div class="sub-tab">归档</div>
+            <div class="sub-tab">工单</div>
+            <div class="sub-tab">工具</div>
+          </div>
+
+          <!-- 基础信息 -->
+          <div class="base-info-block">
+            <div class="base-info-title">基础信息</div>
+            <div class="base-info-grid">
+              <div class="base-info-item">车主信息：<span>朱AA，在4辆授权车辆：小鹏G9 650超长版 Pro(内饰版N8)、2025款小鹏X9 650 长续航 Max、2025款小鹏X9 740 超长续航 Max、2024款P5 S 500 Pro</span></div>
+              <div class="base-info-item">有2辆授权车辆：<span>小鹏G6 580长续航版、小鹏M03 620长续航版</span></div>
+              <div class="base-info-item">近期服务：<span style="color:#999;">近期服务无变化，请搜索客户信息及客户历次进行服务</span></div>
+            </div>
+          </div>
+
+          <!-- 服务总结 -->
+          <div class="summary-content">
+            <div class="summary-block-title">服务总结</div>
+
+            <!-- 互联网业务 -->
+            <div class="svc-category" id="cat-internet">
+              <div class="svc-category-header" onclick="toggleCategory('cat-internet')">
+                <span class="svc-tag t-internet">互联网业务</span>
+                <span class="svc-meta"><span class="count">近4个月沟通6次</span>，最近一次沟通时间 2026/02/24 15:18:41</span>
+                <span class="arrow">▼</span>
+              </div>
+              <div class="svc-category-body">
+                <div class="ticket">
+                  <div class="ticket-label">【主要问题】</div>
+                  <div class="ticket-text">
+                    1.【投诉】：中控大屏黑屏（有声无像），多次重启后无反应，要求退换车辆且车辆加速无力。<span class="hl">【处理进度】</span>：客服联系经销商门店检测，确认为软件故障，OTA升级后恢复正常。全程预计到达至3月8日前完成更换。<br/>
+                    2.【咨询】：用户投诉维修费用过高，超出500公里，机构技术太差，提出需要退款。<span class="hl">【处理进度】</span>：客服联系售后专员处理，推动2000积分补偿方案。<br/>
+                    3.【咨询】：用户下单后没有收到确认短信和APP通知，要求核实订单状态及发货时间。<span class="hl">【处理进度】</span>：已确认订单状态正常，全程预计到达至3月8日前到达，并附赠200元优惠券。
+                  </div>
+                  <div class="solution">
+                    <div class="solution-label">【解决方案】</div>
+                    <div class="solution-box">无</div>
+                  </div>
+                </div>
+                <div class="see-issues-link">查看问题详情 ▾</div>
+                <div class="ai-reply">
+                  <div class="ai-reply-head">
+                    <span class="ai-badge">AI</span>
+                    <span class="ai-author">AI助理 / 智能客服4级主管</span>
+                    <span class="ai-time">2026/01/09 01:50</span>
+                    <span style="margin-left:auto; font-size:11px; color:#0068ff; cursor:pointer;">📋 生成报告</span>
+                  </div>
+                  <div class="ai-text">用户咨询新车交付及购车补贴和出险费用，客服回复通过立刻App活动材料补贴广州地区车辆补贴，并提醒及对应补贴金额说明，请便交付补贴。</div>
+                </div>
+                <div class="toggle-link">收起 ∧</div>
+              </div>
+            </div>
+
+            <!-- 传统服务 -->
+            <div class="svc-category" id="cat-traditional">
+              <div class="svc-category-header" onclick="toggleCategory('cat-traditional')">
+                <span class="svc-tag t-traditional">传统服务</span>
+                <span class="svc-meta"><span class="count">近4个月沟通3次</span>，最近一次沟通时间 2026/02/24 15:16:41</span>
+                <span class="arrow">▼</span>
+              </div>
+              <div class="svc-category-body">
+                <div class="ticket">
+                  <div class="ticket-label">【主要问题】</div>
+                  <div class="ticket-text">
+                    1.【投诉】：2025款X9S整车停车场车辆，中控大屏无法进入设置页面，导致维修困难。用户已进店处理。<span class="hl">【处理进度】</span>：客服跟进配件发货状态，联合经销商门店优先处理，并建立远程诊断工单。<br/>
+                    2.【咨询】：用户下单后及时查询配件状态及问题，要求技师确认故障原因并开具维修单。<span class="hl">【处理进度】</span>：客户反馈问题确认故障原因后安排门店远程诊断检测，确保一次到位，已日结。
+                  </div>
+                  <div class="solution">
+                    <div class="solution-label">【解决方案】</div>
+                    <div class="solution-box">无</div>
+                  </div>
+                </div>
+                <div class="see-issues-link">查看问题详情 ▾</div>
+              </div>
+            </div>
+
+            <!-- 积分 -->
+            <div class="svc-category" id="cat-points">
+              <div class="svc-category-header" onclick="toggleCategory('cat-points')">
+                <span class="svc-tag t-points">积分</span>
+                <span class="svc-meta">这个月积分增加17，最近一次沟通时间 2026/02/05 14:47:13</span>
+                <span class="arrow">▼</span>
+              </div>
+              <div class="svc-category-body">
+                <div class="ticket">
+                  <div class="ticket-label">【主要问题】</div>
+                  <div class="ticket-text">
+                    1.【咨询】：用户询问2000积分计划兑换到账时间。<span class="hl">【处理进度】</span>：客服核实系统发放数据，于3个工作日内完成积分分批付并主动通知用户确收。
+                  </div>
+                  <div class="solution">
+                    <div class="solution-label">【解决方案】</div>
+                    <div class="solution-box">无</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 充电 -->
+            <div class="svc-category" id="cat-charging">
+              <div class="svc-category-header" onclick="toggleCategory('cat-charging')">
+                <span class="svc-tag t-charging">充电</span>
+                <span class="svc-meta"><span class="count">1个月内沟通2次</span>，最近一次沟通时间 2026/07/13 13:37:57</span>
+                <span class="arrow">▼</span>
+              </div>
+              <div class="svc-category-body">
+                <div class="ticket">
+                  <div class="ticket-label">【主要问题】</div>
+                  <div class="ticket-text">
+                    1.【咨询】：用户反映设置第三方充电桩充电长时间卡在99%无法充满，询问原因及解决方案。<span class="hl">【处理进度】</span>：客服解释电池电芯温度保护机制，建议优先使用小鹏超充桩充电，并主动提供最近充电站位置信息，将保留充电异常数据及时间内反馈。
+                  </div>
+                  <div class="solution">
+                    <div class="solution-label">【解决方案】</div>
+                    <div class="solution-box">无</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 销售 -->
+            <div class="svc-category" id="cat-sales">
+              <div class="svc-category-header" onclick="toggleCategory('cat-sales')">
+                <span class="svc-tag t-sales">销售</span>
+                <span class="svc-meta"><span class="count">6个月内沟通1次</span>，最近一次沟通时间 2026/01/08 10:02:23</span>
+                <span class="arrow">▼</span>
+              </div>
+              <div class="svc-category-body">
+                <div class="ticket">
+                  <div class="ticket-label">【主要问题】</div>
+                  <div class="ticket-text">
+                    1.【咨询】：用户咨询广州广东优惠购/政府购车补贴申请流程、材料要求、时间节点及与X9同款车型的适配。<span class="hl">【处理进度】</span>：客服提供完整政策指引、申请路径、注意事项及到店预约流程，并确认购车合同签署条件，支付定金，后续协调内部相关事项进审批进度。
+                  </div>
+                  <div class="solution">
+                    <div class="solution-label">【解决方案】</div>
+                    <div class="solution-box">现阶段仅需要提前预约即可。</div>
+                  </div>
+                </div>
+                <div class="ai-reply">
+                  <div class="ai-reply-head">
+                    <span class="ai-badge">AI</span>
+                    <span class="ai-author">AI助理 / 智能客服4级主管</span>
+                    <span class="ai-time">2026/01/09 01:50</span>
+                    <span style="margin-left:auto; font-size:11px; color:#0068ff; cursor:pointer;">📋 生成报告</span>
+                  </div>
+                  <div class="ai-text">用户咨询新车交付及政府补贴申请流程，客服指引其通过立刻App提交材料申请广州购车补贴，并提醒及对应补贴金额说明，请便交付补贴进审核进度，确保资料准确，避免遗漏。</div>
+                </div>
+                <div class="toggle-link">收起 ∧</div>
+              </div>
+            </div>
+
+            <!-- 交付 -->
+            <div class="svc-category" id="cat-delivery">
+              <div class="svc-category-header" onclick="toggleCategory('cat-delivery')">
+                <span class="svc-tag t-delivery">交付</span>
+                <span class="svc-meta"><span class="count">1个月内沟通1次</span>，最近一次沟通时间 2026/01/08 10:02:23</span>
+                <span class="arrow">▼</span>
+              </div>
+              <div class="svc-category-body">
+                <div class="ticket">
+                  <div class="ticket-label">【主要问题】</div>
+                  <div class="ticket-text">
+                    1.【咨询】：用户确认提车地点（交车安排从300m入口，大门口车库指引），身份验证要求（车主身份证原件），费用结算要求。<span class="hl">【处理进度】</span>：客服确认交车时间，确定客户验证流程及验车流程，并安排交付专员对接。开具发票及西部区域交车实际到达时间与上报交付。
+                  </div>
+                  <div class="solution">
+                    <div class="solution-label">【解决方案】</div>
+                    <div class="solution-box">无</div>
+                  </div>
+                </div>
+                <div class="ai-reply">
+                  <div class="ai-reply-head">
+                    <span class="ai-badge">AI</span>
+                    <span class="ai-author">AI助理 / 智能客服4级主管</span>
+                    <span class="ai-time">2026/01/09 01:50</span>
+                    <span style="margin-left:auto; font-size:11px; color:#0068ff; cursor:pointer;">📋 生成报告</span>
+                  </div>
+                  <div class="ai-text">用户咨询新车交付及政府补贴申请流程，客服指引其通过立刻App提交材料申请广州购车补贴，并提醒及对应补贴金额说明，请便交付补贴进审核进度，确保资料准确，避免遗漏。</div>
+                </div>
+                <div class="toggle-link">收起 ∧</div>
+              </div>
+            </div>
+
+          </div><!-- /summary-content -->
+        </div><!-- /panel-summary -->
+
+      </div><!-- /modal -->
+    </div><!-- /modal-overlay -->
+  </div><!-- /content-area -->
+</div><!-- /main-layout -->
+
+<!-- 右侧悬浮 -->
+<div class="float-actions">
+  <div class="float-btn blue"><span class="f-icon">💬</span>客服</div>
+  <div class="float-btn green"><span class="f-icon">📋</span>任务</div>
+</div>
+
+
+
+<script>
+function switchPrimaryTab(index) {
+  var tabs = document.querySelectorAll('.primary-tab');
+  var panels = document.querySelectorAll('.tab-panel');
+  tabs.forEach(function(t, i) {
+    t.classList.toggle('active', i === index);
+  });
+  panels.forEach(function(p, i) {
+    p.classList.toggle('active', i === index);
+  });
+}
+
+function toggleCategory(id) {
+  var el = document.getElementById(id);
+  el.classList.toggle('collapsed');
+}
+</script>
+
+</body>
+</html>

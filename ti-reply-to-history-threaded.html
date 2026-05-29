@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TI Detail - Reply to History Threaded Comment</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;font-size:13px;color:#333;background:#f5f7fa;}
+
+/* Top Bar */
+.top-bar{height:48px;background:#fff;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #e8e8e8;position:fixed;top:0;left:0;right:0;z-index:100;}
+.top-bar .logo{display:flex;align-items:center;gap:8px;margin-right:24px;}
+.top-bar .logo-text{font-size:14px;font-weight:600;color:#333;}
+.top-bar .right-area{display:flex;align-items:center;gap:16px;margin-left:auto;}
+.top-bar .badge{background:#ff4d4f;color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;position:relative;top:-6px;left:-4px;}
+.top-bar .avatar{width:28px;height:28px;border-radius:50%;background:#ff7a45;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.top-bar .role-tag{font-size:11px;color:#4a90d9;background:#e6f0ff;padding:1px 6px;border-radius:3px;}
+
+/* Layout */
+.page-wrap{display:flex;margin-top:48px;min-height:calc(100vh - 48px);}
+.anchor-nav{width:160px;position:fixed;top:48px;left:0;bottom:0;background:#fff;border-right:1px solid #e8e8e8;padding:16px 0;overflow-y:auto;z-index:50;}
+.anchor-nav a{display:block;padding:8px 16px;font-size:12px;color:#666;text-decoration:none;border-left:3px solid transparent;transition:all .15s;line-height:1.5;}
+.anchor-nav a:hover{color:#4a90d9;background:#f5f9ff;}
+.anchor-nav a.active{color:#4a90d9;font-weight:500;border-left-color:#4a90d9;background:#e8f0fe;}
+.main-content{margin-left:160px;flex:1;padding:16px 24px 80px;max-width:1100px;}
+
+/* Page Switcher */
+.page-switcher{display:flex;gap:0;margin-bottom:16px;}
+.sw-btn{padding:8px 20px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fafafa;color:#666;}
+.sw-btn:first-child{border-radius:4px 0 0 4px;}
+.sw-btn:last-child{border-radius:0 4px 4px 0;margin-left:-1px;}
+.sw-btn.active{background:#4a90d9;color:#fff;border-color:#4a90d9;z-index:1;position:relative;}
+
+/* Buttons */
+.btn{padding:6px 16px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#333;transition:all .15s;}
+.btn:hover{border-color:#4a90d9;color:#4a90d9;}
+.btn-primary{background:#4a90d9;color:#fff;border-color:#4a90d9;}
+.btn-primary:hover{background:#3a7bc8;color:#fff;}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn-print{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#666;transition:all .15s;margin-left:4px;}
+.btn-print:hover{border-color:#4a90d9;color:#4a90d9;background:#f5f9ff;}
+
+/* Header */
+.header-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ti-number{font-size:15px;font-weight:600;color:#333;}
+.status-badge{display:inline-block;padding:3px 12px;border-radius:3px;font-size:12px;font-weight:500;margin-left:12px;}
+.status-pending{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;}
+.header-actions{position:fixed;top:56px;right:24px;z-index:90;display:flex;gap:8px;background:#fff;padding:8px 12px;border-radius:0 0 8px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.org-info{display:flex;gap:24px;font-size:12px;color:#999;margin-bottom:16px;flex-wrap:wrap;}
+.org-info span{color:#333;}
+
+/* Section */
+.section{margin-bottom:24px;scroll-margin-top:64px;}
+.section-title{font-size:13px;font-weight:600;color:#333;padding-left:10px;border-left:3px solid #4a90d9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,#e8e8e8,transparent);}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 20px;margin-bottom:16px;}
+.form-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.form-item{display:flex;flex-direction:column;gap:4px;}
+.form-item.span-2{grid-column:span 2;}
+.form-label{font-size:12px;color:#999;}
+.form-label .req{color:#ff4d4f;}
+.form-value{background:#f5f7fa;border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;font-size:12px;color:#333;min-height:32px;display:flex;align-items:center;}
+.form-value.tall{min-height:60px;align-items:flex-start;line-height:1.6;}
+
+/* Data Table */
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{background:#f0f2f5;padding:8px 12px;text-align:left;font-size:12px;color:#666;font-weight:500;border-bottom:1px solid #e0e0e0;white-space:nowrap;}
+.data-table td{padding:8px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.data-table tr:hover td{background:#f8fafc;}
+.data-table .file-link{color:#4a90d9;cursor:pointer;font-size:11px;text-decoration:none;}
+.data-table .file-link:hover{text-decoration:underline;}
+.data-table .file-cell{display:flex;flex-direction:column;gap:2px;}
+.data-table .file-row{display:flex;align-items:center;gap:6px;}
+.data-table .icon-sm{font-size:12px;color:#4a90d9;cursor:pointer;}
+
+/* Review Comments */
+textarea.form-input{width:100%;border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12px;min-height:80px;resize:vertical;outline:none;font-family:inherit;}
+textarea.form-input:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.1);}
+
+/* Page toggle */
+.page-view{display:none;}
+.page-view.active{display:block;}
+
+/* Footer */
+.page-footer{position:fixed;bottom:0;left:160px;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:10px 24px;display:flex;justify-content:flex-end;gap:8px;box-shadow:0 -2px 8px rgba(0,0,0,.04);z-index:50;}
+
+/* Modal */
+.modal-mask{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;justify-content:center;align-items:center;}
+.modal-mask.show{display:flex;}
+.modal{background:#fff;border-radius:8px;width:560px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e8e8e8;}
+.modal-header h3{font-size:15px;font-weight:600;color:#333;margin:0;}
+.modal-close{font-size:18px;color:#999;cursor:pointer;background:none;border:none;padding:0;line-height:1;}
+.modal-close:hover{color:#333;}
+.modal-body{padding:20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:8px;}
+
+/* Design Note */
+.design-note{background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#ad6800;line-height:1.6;}
+.design-note strong{color:#874d00;}
+
+/* File drop */
+.file-drop{border:1px dashed #d9d9d9;border-radius:6px;padding:20px;text-align:center;color:#999;font-size:12px;cursor:pointer;transition:all .15s;}
+.file-drop:hover{border-color:#4a90d9;background:#fafcff;}
+.file-drop .drop-icon{font-size:28px;color:#4a90d9;margin-bottom:4px;}
+.file-drop .drop-hint{font-size:11px;color:#bbb;margin-top:4px;}
+.text-link{color:#4a90d9;cursor:pointer;}
+.ca-label{font-size:12px;font-weight:600;color:#333;margin-bottom:8px;}
+.ca-hint{text-align:right;font-size:11px;color:#bbb;margin-top:4px;}
+.ca-upload-label{font-size:12px;font-weight:600;color:#333;margin:12px 0 8px;}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="logo"><span style="font-size:18px;">🔶</span><span class="logo-text">Sales and Service</span></div>
+  <div class="right-area">
+    <span style="color:#666;cursor:pointer;">🔍</span>
+    <span style="color:#666;cursor:pointer;">⚙️</span>
+    <span style="color:#666;cursor:pointer;">🔔<span class="badge">3</span></span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="avatar">R</div>
+      <span style="font-size:12px;">Rado Peric</span>
+      <span class="role-tag">Technical Manager (NSC)</span>
+      <span style="font-size:11px;color:#999;">▼</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Threaded Comment Styles ===== -->
+<style>
+/* Comment Action Button in table */
+.reply-action-btn{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:3px 10px;border-radius:3px;font-size:11px;
+  cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#606266;
+  transition:all .15s;white-space:nowrap;
+}
+.reply-action-btn:hover{border-color:#4a90d9;color:#4a90d9;background:#f0f7ff;}
+.reply-action-btn svg{width:13px;height:13px;}
+
+/* Status tags */
+.status-tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;}
+.status-replied-nsc{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff;}
+.status-pending-nsc{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;}
+.status-pending-xpeng{background:#f9f0ff;color:#722ed1;border:1px solid #d3adf7;}
+.status-replied-xpeng{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f;}
+.status-draft{background:#f5f5f5;color:#8c8c8c;border:1px solid #d9d9d9;}
+
+/* Sub-comment row */
+.sub-reply-row td{background:#fafbfd !important;border-bottom:1px solid #f0f2f5;}
+.sub-reply-row:hover td{background:#f0f5fb !important;}
+.sub-reply-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;color:#4a90d9;background:#e8f0fe;
+  padding:1px 6px;border-radius:2px;margin-bottom:4px;white-space:nowrap;
+}
+.sub-reply-badge svg{width:10px;height:10px;}
+.sub-reply-content{padding-left:10px;border-left:2px solid #d6e4f7;}
+.sub-reply-quote{
+  font-size:11px;color:#8c8c8c;margin-bottom:4px;
+  padding:4px 8px;background:#f0f2f5;border-radius:3px;border-left:2px solid #4a90d9;
+  max-width:500px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* Inline Comment Form */
+.inline-reply-form{
+  background:#f8fafd;border:1px solid #d6e4f7;border-radius:6px;
+  padding:12px 16px;margin-top:8px;animation:slideDown .2s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+.inline-reply-form .reply-ref{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;color:#8c8c8c;margin-bottom:8px;
+  padding:6px 10px;background:#eef3fa;border-radius:4px;border-left:3px solid #4a90d9;
+}
+.inline-reply-form .reply-ref .ref-name{color:#333;font-weight:500;}
+.inline-reply-form .reply-ref .ref-text{color:#666;max-width:500px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.inline-reply-form textarea{
+  width:100%;border:1px solid #dcdfe6;border-radius:4px;padding:8px 10px;
+  font-size:12px;resize:vertical;min-height:70px;font-family:inherit;transition:border-color .15s;
+}
+.inline-reply-form textarea:focus{outline:none;border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.12);}
+.inline-reply-form textarea::placeholder{color:#c0c4cc;}
+.upload-area{margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.upload-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:5px 12px;border:1px dashed #d9d9d9;border-radius:4px;
+  font-size:11px;color:#666;cursor:pointer;background:#fff;transition:all .15s;
+}
+.upload-btn:hover{border-color:#4a90d9;color:#4a90d9;}
+.upload-btn svg{width:14px;height:14px;}
+.uploaded-file{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;background:#f0f7ff;border:1px solid #d6e4f7;border-radius:3px;font-size:11px;color:#333;
+}
+.uploaded-file .remove{cursor:pointer;color:#999;font-size:13px;margin-left:2px;}
+.uploaded-file .remove:hover{color:#f56c6c;}
+.reply-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;}
+.char-count{font-size:10px;color:#c0c4cc;text-align:right;margin-top:2px;}
+
+/* Design Notes Panel */
+.design-notes{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#1a1a2e;color:#e0e0e0;padding:16px 24px;
+  font-size:12px;line-height:1.8;z-index:200;
+  max-height:45vh;overflow-y:auto;border-top:3px solid #4a90d9;
+}
+.design-notes h3{color:#4a90d9;font-size:14px;margin-bottom:8px;}
+.design-notes .note-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;}
+.design-notes .note-item{display:flex;gap:6px;}
+.design-notes .note-num{color:#4a90d9;font-weight:600;flex-shrink:0;}
+.design-notes code{background:#2a2a4a;padding:1px 4px;border-radius:2px;color:#7ec8e3;font-size:11px;}
+.toggle-notes{position:fixed;bottom:50px;right:24px;z-index:201;padding:6px 14px;border-radius:4px;font-size:11px;cursor:pointer;background:#4a90d9;color:#fff;border:none;}
+</style>
+
+<div class="page-wrap">
+  <!-- Left Nav -->
+  <nav class="anchor-nav" id="anchorNav">
+    <div id="nav-register" class="nav-group">
+      <a href="#sec-basic">Basic Information</a>
+      <a href="#sec-fault">Fault Information</a>
+      <a href="#sec-history" class="active">Reply to History</a>
+    </div>
+    <div id="nav-reply" class="nav-group" style="display:none;">
+      <a href="#sec-basic-r">Basic Information</a>
+      <a href="#sec-fault-r">Fault Information</a>
+      <a href="#sec-history-r" class="active">Reply to History</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <!-- Page Switcher -->
+    <div class="page-switcher">
+      <div class="sw-btn active" onclick="switchPage('register')">Technical Inquiry (提单页)</div>
+      <div class="sw-btn" onclick="switchPage('reply')">Technical Inquiry Reply (审核页)</div>
+    </div>
+
+    <!-- ======================== PAGE 1: 提单页 (Dealer View) ======================== -->
+    <div class="page-view active" id="page-register">
+      <div class="design-note"><strong>📐 提单页 (Dealer View)</strong> — Supplementary Explanation 已移除，其功能由 Reply to History 的引用评论（Threaded Comment）替代。Dealer 可以在任意历史记录后点击 Comment 进行针对性评论。</div>
+
+      <div class="header-bar">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="ti-number">Technical Inquiry No.: TSAFDK1001260401002</span>
+          <span class="status-badge status-pending">Pending(NSC)</span>
+          <button class="btn-print" title="Print">🖨️ Print</button>
+        </div>
+        <div class="header-actions"><button class="btn">Service History</button></div>
+      </div>
+      <div class="org-info">
+        <div>Founder Organization Code: <span>AFDK1001</span></div>
+        <div>Founder Organization: <span>XPENG Service Odense</span></div>
+        <div>SAP Code: <span>4003306</span></div>
+        <div>Company: <span>Ejner Hessel A/S(Odense)</span></div>
+      </div>
+
+      <!-- Basic Information -->
+      <div class="section" id="sec-basic">
+        <div class="section-title">Basic Information</div>
+        <div class="form-grid">
+          <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP64J1TB004385</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">4</div></div>
+          <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+          <div class="form-item"><div class="form-label">Exterior Color</div><div class="form-value">Graphite Gray</div></div>
+          <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2026-01-08</div></div>
+          <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">—</div></div>
+        </div>
+      </div>
+
+      <!-- Fault Information -->
+      <div class="section" id="sec-fault">
+        <div class="section-title">Fault Information</div>
+        <div class="form-grid">
+          <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">DTC found under PDI</div></div>
+          <div class="form-item" style="grid-column:span 2;"></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[A] Important malfunction</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value">DTC false trigger-309844</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2026-03-30 20:00</div></div>
+          <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Sub-system</div><div class="form-value">Smart Cabin</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VOR Case</div><div class="form-value">No</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall">DTC found under PDI</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall">Everything works fine in car</div></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall">What do i do?</div></div>
+          <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall">Car is a show car not customer</div></div>
+        </div>
+      </div>
+
+      <!-- ===== Reply to History (提单页 - with Threaded Comment) ===== -->
+      <div class="section" id="sec-history">
+        <div class="section-title">Reply to History</div>
+        <table class="data-table" id="table-register">
+          <thead>
+            <tr>
+              <th style="width:36px;">No.</th>
+              <th style="width:120px;">Operator</th>
+              <th style="width:200px;">Operation Role</th>
+              <th style="width:155px;">Operation Time</th>
+              <th style="width:120px;">Status</th>
+              <th>Comments</th>
+              <th style="width:170px;">Files ⬇</th>
+              <th style="width:70px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Row 1 -->
+            <tr id="reg-row-1">
+              <td>1</td>
+              <td>Olver Svain Hojland</td>
+              <td>Service Store Manager (Dealer)</td>
+              <td>2026-04-01 13:14:27</td>
+              <td><span class="status-tag status-pending-nsc">Pending(NSC)</span></td>
+              <td>—</td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">No Vin 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                  <div class="file-row"><a class="file-link">DTC 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('reg-row-1','Olver Svain Hojland','(No comment text)','table-register')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 2 -->
+            <tr id="reg-row-2">
+              <td>2</td>
+              <td>Rado Peric</td>
+              <td>Technical Manager (NSC)</td>
+              <td>2026-04-01 13:25:12</td>
+              <td><span class="status-tag status-replied-nsc">Replied(NSC)</span></td>
+              <td>Are these DTC's normal for a P7+ or should they be able to delete them? the Vin nameplate missing is on a separate TI</td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">No Vin 01 04 2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('reg-row-2','Rado Peric','Are these DTC\\'s normal for a P7+ or should they be able to delete them?','table-register')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 2 → Sub-comment (Dealer replies to NSC's question) -->
+            <tr class="sub-reply-row" id="reg-sub-2-1">
+              <td></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                    Comment on #2
+                  </div>
+                  <div>Olver Svain Hojland</div>
+                </div>
+              </td>
+              <td>Service Store Manager (Dealer)</td>
+              <td>2026-04-01 14:30:15</td>
+              <td><span class="status-tag status-pending-nsc">Pending(NSC)</span></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-quote">Re: "Are these DTC's normal for a P7+ or should they be able to delete them?"</div>
+                  We noticed the DTC appeared right after PDI. The car has not been driven by any customer yet. Is this something we should worry about or can we just clear the codes?
+                </div>
+              </td>
+              <td>-</td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('reg-sub-2-1','Olver Svain Hojland','We noticed the DTC appeared right after PDI...','table-register')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 2 → Sub-comment 2 (NSC answers) -->
+            <tr class="sub-reply-row" id="reg-sub-2-2">
+              <td></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                    Comment on #2
+                  </div>
+                  <div>Rado Peric</div>
+                </div>
+              </td>
+              <td>Technical Manager (NSC)</td>
+              <td>2026-04-01 15:12:08</td>
+              <td><span class="status-tag status-replied-nsc">Replied(NSC)</span></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-quote">Re: Olver - "We noticed the DTC appeared right after PDI..."</div>
+                  I've checked with the engineering team. These DTCs are known false triggers on P7+ models produced in January 2026. You can safely clear them.
+                </div>
+              </td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">DTC_Analysis_Report.pdf</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('reg-sub-2-2','Rado Peric','These DTCs are known false triggers on P7+ models...','table-register')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 3 (Consult Region) -->
+            <tr id="reg-row-3">
+              <td>3</td>
+              <td>Rado Peric</td>
+              <td>Technical Manager (NSC)</td>
+              <td>2026-04-02 09:00:00</td>
+              <td><span class="status-tag status-pending-xpeng">Pending(Region)</span></td>
+              <td>Escalating to Region for confirmation: are these false DTC triggers a known batch issue for January 2026 P7+ production?</td>
+              <td>-</td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('reg-row-3','Rado Peric','Escalating to Region for confirmation...','table-register')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 3 → Sub-comment (Region answers) -->
+            <tr class="sub-reply-row" id="reg-sub-3-1">
+              <td></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                    Comment on #3
+                  </div>
+                  <div>朱晓然</div>
+                </div>
+              </td>
+              <td>Technical Manager (Region)</td>
+              <td>2026-04-02 09:45:33</td>
+              <td><span class="status-tag status-replied-xpeng">Replied(Region)</span></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-quote">Re: "Escalating to Region for confirmation: are these false DTC triggers..."</div>
+                  Confirmed. A technical bulletin will be issued next week covering this DTC false trigger issue for all P7+ January production batch. Safe to clear.
+                </div>
+              </td>
+              <td>-</td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('reg-sub-3-1','朱晓然','Confirmed. A technical bulletin will be issued next week...','table-register')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- Inline reply form placeholder (moves dynamically) -->
+        <div id="reply-form-reg" style="display:none;">
+          <div class="inline-reply-form">
+            <div class="reply-ref">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4a90d9" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+              <span>Commenting on <span class="ref-name" id="ref-name-reg"></span>:</span>
+              <span class="ref-text" id="ref-text-reg"></span>
+            </div>
+            <textarea placeholder="Enter your comment..." id="reply-textarea-reg" maxlength="1000"></textarea>
+            <div class="char-count"><span id="char-count-reg">0</span>/1000</div>
+            <div class="upload-area">
+              <button class="upload-btn" onclick="simulateUpload('reg')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Attachment
+              </button>
+              <span style="font-size:10px;color:#c0c4cc;">Supports: jpg, png, jpeg, mp4, rar, zip, pdf, ppt (max 6)</span>
+              <div id="uploaded-files-reg" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;width:100%;"></div>
+            </div>
+            <div class="reply-form-actions">
+              <button class="btn btn-sm" onclick="cancelReply('reg')">Cancel</button>
+              <button class="btn btn-primary btn-sm" onclick="submitReply('reg')">Submit Comment</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-register -->
+
+    <!-- ======================== PAGE 2: 审核页 (NSC/Region View) ======================== -->
+    <div class="page-view" id="page-reply">
+      <div class="design-note"><strong>📐 审核页 (NSC/Region View)</strong> — Supplementary Explanation 已移除。NSC/Region 可通过顶部按钮 Reply/Consult Region 进行正式审批操作，也可在 Reply to History 中对任意历史记录进行引用评论（Comment）。</div>
+
+      <div class="header-bar">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="ti-number">Technical Inquiry No.: TSAFDK1001260401002</span>
+          <span class="status-badge status-pending">Pending(Region)</span>
+          <button class="btn-print" title="Print">🖨️ Print</button>
+        </div>
+        <div class="header-actions">
+          <button class="btn">Service History</button>
+          <button class="btn btn-primary" onclick="openModal('reply')">Reply</button>
+          <button class="btn" onclick="openModal('consult')">Consult Region</button>
+          <button class="btn">Apply for pre closure</button>
+          <button class="btn">Apply for closing</button>
+        </div>
+      </div>
+      <div class="org-info">
+        <div>Founder Organization Code: <span>AFDK1001</span></div>
+        <div>Founder Organization: <span>XPENG Service Odense</span></div>
+        <div>SAP Code: <span>4003306</span></div>
+        <div>Company: <span>Ejner Hessel A/S(Odense)</span></div>
+      </div>
+
+      <!-- Basic Information -->
+      <div class="section" id="sec-basic-r">
+        <div class="section-title">Basic Information</div>
+        <div class="form-grid">
+          <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP64J1TB004385</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">4</div></div>
+          <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+          <div class="form-item"><div class="form-label">Exterior Color</div><div class="form-value">Graphite Gray</div></div>
+          <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2026-01-08</div></div>
+          <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">—</div></div>
+        </div>
+      </div>
+
+      <!-- Fault Information -->
+      <div class="section" id="sec-fault-r">
+        <div class="section-title">Fault Information</div>
+        <div class="form-grid">
+          <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">DTC found under PDI</div></div>
+          <div class="form-item" style="grid-column:span 2;"></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[A] Important malfunction</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value">DTC false trigger-309844</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2026-03-30 20:00</div></div>
+          <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Sub-system</div><div class="form-value">Smart Cabin</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VOR Case</div><div class="form-value">No</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall">DTC found under PDI</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall">Everything works fine in car</div></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall">What do i do?</div></div>
+          <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall">Car is a show car not customer</div></div>
+        </div>
+      </div>
+
+      <!-- ===== Reply to History (审核页 - with Threaded Comment) ===== -->
+      <div class="section" id="sec-history-r">
+        <div class="section-title">Reply to History</div>
+        <table class="data-table" id="table-reply">
+          <thead>
+            <tr>
+              <th style="width:36px;">No.</th>
+              <th style="width:120px;">Operator</th>
+              <th style="width:200px;">Operation Role</th>
+              <th style="width:155px;">Operation Time</th>
+              <th style="width:120px;">Status</th>
+              <th>Comments</th>
+              <th style="width:170px;">Files ⬇</th>
+              <th style="width:70px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Row 1 -->
+            <tr id="rpl-row-1">
+              <td>1</td>
+              <td>Olver Svain Hojland</td>
+              <td>Service Store Manager (Dealer)</td>
+              <td>2026-04-01 13:14:27</td>
+              <td><span class="status-tag status-pending-nsc">Pending(NSC)</span></td>
+              <td>—</td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">No Vin 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                  <div class="file-row"><a class="file-link">DTC 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('rpl-row-1','Olver Svain Hojland','(No comment text)','table-reply')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 2 -->
+            <tr id="rpl-row-2">
+              <td>2</td>
+              <td>Rado Peric</td>
+              <td>Technical Manager (NSC)</td>
+              <td>2026-04-01 13:25:12</td>
+              <td><span class="status-tag status-replied-nsc">Replied(NSC)</span></td>
+              <td>Are these DTC's normal for a P7+ or should they be able to delete them? the Vin nameplate missing is on a separate TI</td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">No Vin 01 04 2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('rpl-row-2','Rado Peric','Are these DTC\\'s normal for a P7+...','table-reply')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 2 → Sub-comment -->
+            <tr class="sub-reply-row" id="rpl-sub-2-1">
+              <td></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                    Comment on #2
+                  </div>
+                  <div>Olver Svain Hojland</div>
+                </div>
+              </td>
+              <td>Service Store Manager (Dealer)</td>
+              <td>2026-04-01 14:30:15</td>
+              <td><span class="status-tag status-pending-nsc">Pending(NSC)</span></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-quote">Re: "Are these DTC's normal for a P7+ or should they be able to delete them?"</div>
+                  We noticed the DTC appeared right after PDI. The car has not been driven by any customer yet. Is this something we should worry about or can we just clear the codes?
+                </div>
+              </td>
+              <td>-</td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('rpl-sub-2-1','Olver Svain Hojland','We noticed the DTC appeared right after PDI...','table-reply')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 2 → Sub-comment 2 -->
+            <tr class="sub-reply-row" id="rpl-sub-2-2">
+              <td></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                    Comment on #2
+                  </div>
+                  <div>Rado Peric</div>
+                </div>
+              </td>
+              <td>Technical Manager (NSC)</td>
+              <td>2026-04-01 15:12:08</td>
+              <td><span class="status-tag status-replied-nsc">Replied(NSC)</span></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-quote">Re: Olver - "We noticed the DTC appeared right after PDI..."</div>
+                  I've checked with the engineering team. These DTCs are known false triggers on P7+ models produced in January 2026. You can safely clear them.
+                </div>
+              </td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">DTC_Analysis_Report.pdf</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('rpl-sub-2-2','Rado Peric','These DTCs are known false triggers...','table-reply')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 3 -->
+            <tr id="rpl-row-3">
+              <td>3</td>
+              <td>Rado Peric</td>
+              <td>Technical Manager (NSC)</td>
+              <td>2026-04-02 09:00:00</td>
+              <td><span class="status-tag status-pending-xpeng">Pending(Region)</span></td>
+              <td>Escalating to Region for confirmation: are these false DTC triggers a known batch issue for January 2026 P7+ production?</td>
+              <td>-</td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('rpl-row-3','Rado Peric','Escalating to Region for confirmation...','table-reply')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 3 → Sub-comment (Region) -->
+            <tr class="sub-reply-row" id="rpl-sub-3-1">
+              <td></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                    Comment on #3
+                  </div>
+                  <div>朱晓然</div>
+                </div>
+              </td>
+              <td>Technical Manager (Region)</td>
+              <td>2026-04-02 09:45:33</td>
+              <td><span class="status-tag status-replied-xpeng">Replied(Region)</span></td>
+              <td>
+                <div class="sub-reply-content">
+                  <div class="sub-reply-quote">Re: "Escalating to Region for confirmation..."</div>
+                  Confirmed. A technical bulletin will be issued next week covering this DTC false trigger issue for all P7+ January production batch. Safe to clear.
+                </div>
+              </td>
+              <td>-</td>
+              <td>
+                <button class="reply-action-btn" onclick="toggleReplyForm('rpl-sub-3-1','朱晓然','Confirmed. A technical bulletin will be issued...','table-reply')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+                  Comment
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- Inline reply form placeholder -->
+        <div id="reply-form-rpl" style="display:none;">
+          <div class="inline-reply-form">
+            <div class="reply-ref">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4a90d9" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M3 10h10a5 5 0 0 1 5 5v6"/><path d="M7 14l-4-4 4-4"/></svg>
+              <span>Commenting on <span class="ref-name" id="ref-name-rpl"></span>:</span>
+              <span class="ref-text" id="ref-text-rpl"></span>
+            </div>
+            <textarea placeholder="Enter your comment..." id="reply-textarea-rpl" maxlength="1000"></textarea>
+            <div class="char-count"><span id="char-count-rpl">0</span>/1000</div>
+            <div class="upload-area">
+              <button class="upload-btn" onclick="simulateUpload('rpl')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Attachment
+              </button>
+              <span style="font-size:10px;color:#c0c4cc;">Supports: jpg, png, jpeg, mp4, rar, zip, pdf, ppt (max 6)</span>
+              <div id="uploaded-files-rpl" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;width:100%;"></div>
+            </div>
+            <div class="reply-form-actions">
+              <button class="btn btn-sm" onclick="cancelReply('rpl')">Cancel</button>
+              <button class="btn btn-primary btn-sm" onclick="submitReply('rpl')">Submit Comment</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-reply -->
+
+  </div><!-- /main-content -->
+</div><!-- /page-wrap -->
+
+<div class="page-footer"><button class="btn">Edit</button></div>
+
+<!-- Reply Modal -->
+<div class="modal-mask" id="modal-reply">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Reply</h3>
+      <button class="modal-close" onclick="closeModal('reply')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="ca-label"><span style="color:#ff4d4f;">*</span> Comments</div>
+      <textarea class="form-input" placeholder="Enter your review comments..." style="min-height:100px;"></textarea>
+      <div class="ca-hint">0/2000</div>
+      <div class="ca-upload-label">Attachment:</div>
+      <div class="file-drop">
+        <div class="drop-icon">⬆️</div>
+        <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+        <div class="drop-hint">Supported: doc, docx, xls, xlsx, pdf, txt, jpg, png, mp4, rar, eml, jpeg</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('reply')">Cancel</button>
+      <button class="btn btn-primary">Submit Reply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Consult Region Modal -->
+<div class="modal-mask" id="modal-consult">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Consult Region</h3>
+      <button class="modal-close" onclick="closeModal('consult')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="ca-label"><span style="color:#ff4d4f;">*</span> Comments</div>
+      <textarea class="form-input" placeholder="Enter comments for Region consultation..." style="min-height:100px;"></textarea>
+      <div class="ca-hint">0/2000</div>
+      <div class="ca-upload-label">Attachment:</div>
+      <div class="file-drop">
+        <div class="drop-icon">⬆️</div>
+        <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+        <div class="drop-hint">Supported: doc, docx, xls, xlsx, pdf, txt, jpg, png, mp4, rar, eml, jpeg</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('consult')">Cancel</button>
+      <button class="btn btn-primary">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Design Notes Toggle -->
+<button class="toggle-notes" onclick="toggleNotes()">📐 Design Notes</button>
+
+<div class="design-notes" id="design-notes" style="display:none;">
+  <h3>📐 Threaded Comment Design Notes — 引用评论设计说明（替代 Supplementary Explanation）</h3>
+  <div class="note-grid">
+    <div class="note-item">
+      <span class="note-num">①</span>
+      <div><code>Supplementary Explanation</code> 模块已移除。其"补充评论+附件"的功能完全由 Reply to History 的引用评论（Comment）替代，实现更精准的针对性讨论。</div>
+    </div>
+    <div class="note-item">
+      <span class="note-num">②</span>
+      <div>Reply to History 表格新增 <code>Action</code> 列，每行末尾放置 Comment 按钮。点击后在该行下方展开内联评论表单，包含引用原文、评论输入框、附件上传。</div>
+    </div>
+    <div class="note-item">
+      <span class="note-num">③</span>
+      <div>评论提交后以 <code>sub-reply-row</code> 子行形式插入被评论记录正下方，带 <code>Comment on #N</code> 蓝色标签 + 左侧蓝色竖线，形成父子层级。</div>
+    </div>
+    <div class="note-item">
+      <span class="note-num">④</span>
+      <div>子评论行也有 Comment 按钮，支持随时继续评论（挂在同一父级下，避免过深嵌套）。任何角色（Dealer/NSC/Region/HQ）均可评论。</div>
+    </div>
+    <div class="note-item">
+      <span class="note-num">⑤</span>
+      <div>引用区域显示被评论人姓名 + 原文摘要（截断），类似聊天软件的引用回复效果。</div>
+    </div>
+    <div class="note-item">
+      <span class="note-num">⑥</span>
+      <div>附件上传复用现有 <code>FileUpload</code> 组件，支持 jpg/png/jpeg/mp4/rar/zip/pdf/ppt，最多6个文件。</div>
+    </div>
+    <div class="note-item">
+      <span class="note-num">⑦</span>
+      <div>API：新增 <code>submitThreadedComment</code> 接口，参数：<code>technicalReportCode</code>、<code>parentCommentId</code>（被评论记录ID）、<code>content</code>、<code>fileList</code>。原 <code>submitContent</code> 接口可废弃。</div>
+    </div>
+    <div class="note-item">
+      <span class="note-num">⑧</span>
+      <div>数据结构：<code>approvalHistory[]</code> 每条记录新增 <code>childComments[]</code> 子数组（或 <code>parentId</code> 扁平关联），前端按父子关系排序渲染。左侧导航移除 Supplementary Explanation 锚点。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Page switching =====
+function switchPage(p){
+  document.querySelectorAll('.page-view').forEach(e=>e.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.sw-btn').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.sw-btn')[p==='register'?0:1].classList.add('active');
+  document.getElementById('nav-register').style.display=p==='register'?'block':'none';
+  document.getElementById('nav-reply').style.display=p==='reply'?'block':'none';
+  // Close any open reply forms
+  cancelReply('reg');
+  cancelReply('rpl');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== Modal =====
+function openModal(type){document.getElementById('modal-'+type).classList.add('show');}
+function closeModal(type){document.getElementById('modal-'+type).classList.remove('show');}
+document.querySelectorAll('.modal-mask').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+});
+
+// ===== Threaded Reply Logic =====
+let currentTarget = {reg: null, rpl: null};
+let uploadCount = {reg: 0, rpl: 0};
+
+function toggleReplyForm(rowId, name, text, tableId) {
+  const page = tableId === 'table-register' ? 'reg' : 'rpl';
+  const form = document.getElementById('reply-form-' + page);
+  const targetRow = document.getElementById(rowId);
+
+  // Toggle off if clicking same row
+  if (currentTarget[page] === rowId && form.style.display !== 'none') {
+    form.style.display = 'none';
+    currentTarget[page] = null;
+    return;
+  }
+
+  // Position form after target row
+  const wrapper = getOrCreateWrapper(form, page);
+  targetRow.parentNode.insertBefore(wrapper, targetRow.nextSibling);
+  form.style.display = 'block';
+
+  document.getElementById('ref-name-' + page).textContent = name;
+  document.getElementById('ref-text-' + page).textContent = '"' + text + '"';
+  document.getElementById('reply-textarea-' + page).value = '';
+  document.getElementById('reply-textarea-' + page).focus();
+  document.getElementById('char-count-' + page).textContent = '0';
+  document.getElementById('uploaded-files-' + page).innerHTML = '';
+  uploadCount[page] = 0;
+  currentTarget[page] = rowId;
+}
+
+function getOrCreateWrapper(form, page) {
+  let wrapper = form.closest('tr');
+  if (!wrapper) {
+    wrapper = document.createElement('tr');
+    wrapper.id = 'form-wrapper-' + page;
+    const td = document.createElement('td');
+    td.colSpan = 8;
+    td.style.padding = '0 12px 12px';
+    td.style.background = '#fafbfd';
+    td.style.borderBottom = '1px solid #f0f2f5';
+    td.appendChild(form);
+    wrapper.appendChild(td);
+  }
+  return wrapper;
+}
+
+function cancelReply(page) {
+  const form = document.getElementById('reply-form-' + page);
+  if (form) form.style.display = 'none';
+  currentTarget[page] = null;
+}
+
+function submitReply(page) {
+  const text = document.getElementById('reply-textarea-' + page).value.trim();
+  if (!text) { alert('Please enter your comment'); return; }
+  alert('✅ Comment submitted!\n\nThis will call submitThreadedComment API with:\n- parentCommentId: ' + currentTarget[page] + '\n- content: ' + text.substring(0, 60) + '...\n- fileList: ' + uploadCount[page] + ' file(s)');
+  cancelReply(page);
+}
+
+function simulateUpload(page) {
+  if (uploadCount[page] >= 6) { alert('Maximum 6 files allowed'); return; }
+  uploadCount[page]++;
+  const container = document.getElementById('uploaded-files-' + page);
+  const el = document.createElement('span');
+  el.className = 'uploaded-file';
+  el.innerHTML = '📎 file_' + uploadCount[page] + '.jpg <span class="remove" onclick="this.parentElement.remove()">✕</span>';
+  container.appendChild(el);
+}
+
+// Character counters
+document.addEventListener('DOMContentLoaded', function() {
+  ['reg','rpl'].forEach(page => {
+    const ta = document.getElementById('reply-textarea-' + page);
+    if (ta) ta.addEventListener('input', function() {
+      document.getElementById('char-count-' + page).textContent = this.value.length;
+    });
+  });
+});
+
+// Design notes toggle
+function toggleNotes() {
+  const n = document.getElementById('design-notes');
+  n.style.display = n.style.display === 'none' ? 'block' : 'none';
+}
+
+// Anchor scroll & highlight
+document.querySelectorAll('.anchor-nav a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting){
+      const id=en.target.id;
+      document.querySelectorAll('.anchor-nav a').forEach(a=>{
+        const h=a.getAttribute('href').replace('#','');
+        a.classList.toggle('active',h===id||h===id.replace(/-r$/,''));
+      });
+    }
+  });
+},{rootMargin:'-80px 0px -60% 0px'});
+document.querySelectorAll('.section[id]').forEach(s=>obs.observe(s));
+</script>
+
+</body>
+</html>

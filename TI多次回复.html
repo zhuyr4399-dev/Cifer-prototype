@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TI Detail - Add Comments to Reply to History</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;font-size:13px;color:#333;background:#f5f7fa;}
+
+/* Top Bar */
+.top-bar{height:48px;background:#fff;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #e8e8e8;position:fixed;top:0;left:0;right:0;z-index:100;}
+.top-bar .logo{display:flex;align-items:center;gap:8px;margin-right:24px;}
+.top-bar .logo-text{font-size:14px;font-weight:600;color:#333;}
+.top-bar .right-area{display:flex;align-items:center;gap:16px;margin-left:auto;}
+.top-bar .badge{background:#ff4d4f;color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;position:relative;top:-6px;left:-4px;}
+.top-bar .avatar{width:28px;height:28px;border-radius:50%;background:#ff7a45;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.top-bar .role-tag{font-size:11px;color:#4a90d9;background:#e6f0ff;padding:1px 6px;border-radius:3px;}
+
+/* Layout */
+.page-wrap{display:flex;margin-top:48px;min-height:calc(100vh - 48px);}
+.anchor-nav{width:160px;position:fixed;top:48px;left:0;bottom:0;background:#fff;border-right:1px solid #e8e8e8;padding:16px 0;overflow-y:auto;z-index:50;}
+.anchor-nav a{display:block;padding:8px 16px;font-size:12px;color:#666;text-decoration:none;border-left:3px solid transparent;transition:all .15s;line-height:1.5;}
+.anchor-nav a:hover{color:#4a90d9;background:#f5f9ff;}
+.anchor-nav a.active{color:#4a90d9;font-weight:500;border-left-color:#4a90d9;background:#e8f0fe;}
+.main-content{margin-left:160px;flex:1;padding:16px 24px 80px;max-width:1100px;}
+
+/* Page Switcher */
+.page-switcher{display:flex;gap:0;margin-bottom:16px;}
+.sw-btn{padding:8px 20px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fafafa;color:#666;}
+.sw-btn:first-child{border-radius:4px 0 0 4px;}
+.sw-btn:last-child{border-radius:0 4px 4px 0;margin-left:-1px;}
+.sw-btn.active{background:#4a90d9;color:#fff;border-color:#4a90d9;z-index:1;position:relative;}
+
+/* Buttons */
+.btn{padding:6px 16px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#333;transition:all .15s;}
+.btn:hover{border-color:#4a90d9;color:#4a90d9;}
+.btn-primary{background:#4a90d9;color:#fff;border-color:#4a90d9;}
+.btn-primary:hover{background:#3a7bc8;color:#fff;}
+.btn-print{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#666;transition:all .15s;margin-left:4px;}
+.btn-print:hover{border-color:#4a90d9;color:#4a90d9;background:#f5f9ff;}
+
+/* Header */
+.header-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ti-number{font-size:15px;font-weight:600;color:#333;}
+.status-badge{display:inline-block;padding:3px 12px;border-radius:3px;font-size:12px;font-weight:500;margin-left:12px;}
+.status-pending{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;}
+.status-replied{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff;}
+.header-actions{position:fixed;top:56px;right:24px;z-index:90;display:flex;gap:8px;background:#fff;padding:8px 12px;border-radius:0 0 8px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.org-info{display:flex;gap:24px;font-size:12px;color:#999;margin-bottom:16px;flex-wrap:wrap;}
+.org-info span{color:#333;}
+
+/* Section */
+.section{margin-bottom:24px;scroll-margin-top:64px;}
+.section-title{font-size:13px;font-weight:600;color:#333;padding-left:10px;border-left:3px solid #4a90d9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,#e8e8e8,transparent);}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 20px;margin-bottom:16px;}
+.form-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.form-item{display:flex;flex-direction:column;gap:4px;}
+.form-item.span-2{grid-column:span 2;}
+.form-label{font-size:12px;color:#999;}
+.form-label .req{color:#ff4d4f;}
+.form-value{background:#f5f7fa;border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;font-size:12px;color:#333;min-height:32px;display:flex;align-items:center;}
+.form-value.tall{min-height:60px;align-items:flex-start;line-height:1.6;}
+textarea.form-input{width:100%;border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12px;min-height:80px;resize:vertical;outline:none;font-family:inherit;}
+textarea.form-input:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.1);}
+
+/* Table */
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{background:#f0f2f5;padding:8px 12px;text-align:left;font-size:12px;color:#666;font-weight:500;border-bottom:1px solid #e0e0e0;white-space:nowrap;}
+.data-table td{padding:8px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.data-table tr:hover td{background:#f8fafc;}
+.data-table .file-link{color:#4a90d9;cursor:pointer;font-size:11px;text-decoration:none;}
+.data-table .file-link:hover{text-decoration:underline;}
+.data-table .file-cell{display:flex;flex-direction:column;gap:2px;}
+.data-table .file-row{display:flex;align-items:center;gap:6px;}
+.data-table .icon-sm{font-size:12px;color:#4a90d9;cursor:pointer;}
+
+/* (supplement rows now look identical to regular rows) */
+
+/* Supplementary Explanation input area */
+.comment-area{border:1px solid #e8e8e8;border-radius:4px;padding:16px;background:#fff;margin-top:16px;}
+.comment-area .ca-label{font-size:12px;font-weight:600;color:#333;margin-bottom:8px;}
+.comment-area textarea{width:100%;border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12px;min-height:60px;resize:vertical;outline:none;font-family:inherit;}
+.comment-area textarea:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.1);}
+.comment-area .ca-hint{text-align:right;font-size:11px;color:#bbb;margin-top:4px;}
+.comment-area .ca-upload-label{font-size:12px;font-weight:600;color:#333;margin:12px 0 8px;}
+.file-drop{border:1px dashed #d9d9d9;border-radius:6px;padding:20px;text-align:center;color:#999;font-size:12px;cursor:pointer;transition:all .15s;}
+.file-drop:hover{border-color:#4a90d9;background:#fafcff;}
+.file-drop .drop-icon{font-size:28px;color:#4a90d9;margin-bottom:4px;}
+.file-drop .drop-hint{font-size:11px;color:#bbb;margin-top:4px;}
+.text-link{color:#4a90d9;cursor:pointer;}
+.ca-footer{display:flex;justify-content:flex-end;margin-top:12px;}
+
+/* Modal */
+.modal-mask{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;justify-content:center;align-items:center;}
+.modal-mask.show{display:flex;}
+.modal{background:#fff;border-radius:8px;width:560px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e8e8e8;}
+.modal-header h3{font-size:15px;font-weight:600;color:#333;margin:0;}
+.modal-close{font-size:18px;color:#999;cursor:pointer;background:none;border:none;padding:0;line-height:1;}
+.modal-close:hover{color:#333;}
+.modal-body{padding:20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:8px;}
+
+/* Footer */
+.page-footer{position:fixed;bottom:0;left:160px;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:10px 24px;display:flex;justify-content:flex-end;gap:8px;box-shadow:0 -2px 8px rgba(0,0,0,.04);z-index:50;}
+
+/* Design Note */
+.design-note{background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#ad6800;line-height:1.6;}
+.design-note strong{color:#874d00;}
+
+/* Page toggle */
+.page-view{display:none;}
+.page-view.active{display:block;}
+
+/* Status selector */
+.status-selector{display:flex;gap:6px;align-items:center;margin-bottom:16px;padding:10px 14px;background:#f0f7ff;border:1px solid #d6e4f7;border-radius:6px;}
+.status-selector label{font-size:12px;color:#333;font-weight:500;}
+.status-selector select{padding:4px 8px;border:1px solid #d9d9d9;border-radius:4px;font-size:12px;color:#333;background:#fff;cursor:pointer;}
+.status-selector .hint{font-size:11px;color:#8c8c8c;margin-left:8px;}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="logo"><span style="font-size:18px;">🔶</span><span class="logo-text">Sales and Service</span></div>
+  <div class="right-area">
+    <span style="color:#666;cursor:pointer;">🔍</span>
+    <span style="color:#666;cursor:pointer;">⚙️</span>
+    <span style="color:#666;cursor:pointer;">🔔<span class="badge">3</span></span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="avatar" id="avatar-icon">O</div>
+      <span style="font-size:12px;" id="user-name">Olver Svain Hojland</span>
+      <span class="role-tag" id="user-role">Service Store Manager (Dealer)</span>
+      <span style="font-size:11px;color:#999;">▼</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <!-- Left Nav -->
+  <nav class="anchor-nav">
+    <a href="#sec-basic" class="active">Basic Information</a>
+    <a href="#sec-fault">Fault Information</a>
+    <a href="#sec-history">Reply to History</a>
+    <a href="#sec-supplement">Add Comments</a>
+  </nav>
+
+  <div class="main-content">
+
+    <!-- Status & Role Simulator -->
+    <div class="status-selector">
+      <label>模拟状态:</label>
+      <select id="sim-status" onchange="updateSimulation()">
+        <option value="PENDING_NSC">Pending(NSC)</option>
+        <option value="REPLIED_NSC">Replied(NSC)</option>
+        <option value="PENDING_XPENG">Pending(XPENG)</option>
+        <option value="REPLIED_XPENG">Replied(XPENG)</option>
+        <option value="APPLY_FOR_PRE_CLOSURE">Apply for Pre Closure</option>
+        <option value="PRE_CLOSED">Pre Closed</option>
+        <option value="APPLY_FOR_CLOSING">Apply for Closing</option>
+        <option value="CLOSED">Closed</option>
+      </select>
+      <label style="margin-left:12px;">当前用户:</label>
+      <select id="sim-role" onchange="updateSimulation()">
+        <option value="SHOP">Dealer（门店）</option>
+        <option value="NSC">NSC（总代）</option>
+        <option value="HOST">HQ（总部）</option>
+      </select>
+      <label style="margin-left:12px;">提单方:</label>
+      <select id="sim-submitter" onchange="updateSimulation()">
+        <option value="SHOP">Dealer 提单</option>
+        <option value="NSC">NSC 提单</option>
+      </select>
+      <span class="hint" id="sim-hint">✅ Dealer 可补充 Comments</span>
+    </div>
+
+    <!-- Header -->
+    <div class="header-bar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="ti-number">Technical Inquiry No.: TSAFDK1001260401002</span>
+        <span class="status-badge status-pending" id="status-display">Pending(NSC)</span>
+        <button class="btn-print" title="Print">🖨️ Print</button>
+      </div>
+      <div class="header-actions">
+        <button class="btn">Service History</button>
+      </div>
+    </div>
+    <div class="org-info">
+      <div>Founder Organization Code: <span>AFDK1001</span></div>
+      <div>Founder Organization: <span>XPENG Service Odense</span></div>
+      <div>SAP Code: <span>4003306</span></div>
+      <div>Company: <span>Ejner Hessel A/S(Odense)</span></div>
+    </div>
+
+    <!-- Basic Information -->
+    <div class="section" id="sec-basic">
+      <div class="section-title">Basic Information</div>
+      <div class="form-grid">
+        <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">—</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP64J1TB004385</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">4</div></div>
+        <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+        <div class="form-item"><div class="form-label">Exterior Color</div><div class="form-value">Graphite Gray</div></div>
+        <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2026-01-08</div></div>
+        <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">—</div></div>
+        <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">—</div></div>
+      </div>
+    </div>
+
+    <!-- Fault Information -->
+    <div class="section" id="sec-fault">
+      <div class="section-title">Fault Information</div>
+      <div class="form-grid">
+        <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">DTC found under PDI</div></div>
+        <div class="form-item" style="grid-column:span 2;"></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[A] Important malfunction</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value">DTC false trigger-309844</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2026-03-30 20:00</div></div>
+        <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value">—</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Sub-system</div><div class="form-value">Smart Cabin</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> VOR Case</div><div class="form-value">No</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall">DTC found under PDI</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall">Everything works fine in car</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall">What do i do?</div></div>
+        <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall">Car is a show car not customer</div></div>
+      </div>
+    </div>
+
+    <!-- ===== Reply to History ===== -->
+    <div class="section" id="sec-history">
+      <div class="section-title">Reply to History</div>
+      <table class="data-table" id="history-table">
+        <thead>
+          <tr>
+            <th style="width:30px;">No.</th>
+            <th style="width:120px;">Operator</th>
+            <th style="width:200px;">Operation Role</th>
+            <th style="width:155px;">Operation Time</th>
+            <th style="width:130px;">Status</th>
+            <th>Comments</th>
+            <th style="width:180px;">Files ⬇</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row 7 (最新): HQ 补充 Comments（回复方追加） -->
+          <tr>
+            <td>7</td>
+            <td>朱晓然</td>
+            <td>Technical Manager (Region)</td>
+            <td>2026-04-02 10:15:00</td>
+            <td><span style="color:#1890ff;">Replied(XPENG)</span></td>
+            <td>One more thing: please also update the vehicle software to version 2.4.1 after clearing the DTCs. This prevents recurrence.</td>
+            <td>
+              <div class="file-cell">
+                <div class="file-row"><a class="file-link">SW_Update_Guide_v2.4.1.pdf</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 6: HQ 回复 -->
+          <tr>
+            <td>6</td>
+            <td>朱晓然</td>
+            <td>Technical Manager (Region)</td>
+            <td>2026-04-02 09:45:33</td>
+            <td><span style="color:#1890ff;">Replied(XPENG)</span></td>
+            <td>Confirmed. These DTCs are known false triggers on P7+ models produced in January 2026 batch. You can safely clear them using diagnostic tool v3.2+. A TSB will be issued next week.</td>
+            <td>
+              <div class="file-cell">
+                <div class="file-row"><a class="file-link">DTC_Analysis_Report.pdf</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 5: NSC 补充 Comments -->
+          <tr>
+            <td>5</td>
+            <td>Rado Peric</td>
+            <td>Technical Manager (NSC)</td>
+            <td>2026-04-01 16:00:00</td>
+            <td><span style="color:#722ed1;">Pending(XPENG)</span></td>
+            <td>Update from NSC: we have confirmed 3 more P7+ vehicles from the same batch with identical symptoms. Customer is asking about timeline — the car is a showroom vehicle needed for display by next week.</td>
+            <td>-</td>
+          </tr>
+
+          <!-- Row 4: NSC 补充 Comments（新增功能） -->
+          <tr>
+            <td>4</td>
+            <td>Rado Peric</td>
+            <td>Technical Manager (NSC)</td>
+            <td>2026-04-01 15:10:00</td>
+            <td><span style="color:#722ed1;">Pending(XPENG)</span></td>
+            <td>Additional context: we have 3 more P7+ vehicles from the same January batch showing similar DTC codes. This might be a batch-wide issue.</td>
+            <td>
+              <div class="file-cell">
+                <div class="file-row"><a class="file-link">batch_dtc_summary.xlsx</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 3: NSC 升级到总部 (Consult Region) -->
+          <tr>
+            <td>3</td>
+            <td>Rado Peric</td>
+            <td>Technical Manager (NSC)</td>
+            <td>2026-04-01 14:25:12</td>
+            <td><span style="color:#722ed1;">Pending(XPENG)</span></td>
+            <td>Are these DTC's normal for a P7+ or should they be able to delete them? the Vin nameplate missing is on a separate TI</td>
+            <td>
+              <div class="file-cell">
+                <div class="file-row"><a class="file-link">No Vin 01 04 2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 2: Dealer 补充 Comments（新增功能） -->
+          <tr>
+            <td>2</td>
+            <td>Olver Svain Hojland</td>
+            <td>Service Store Manager (Dealer)</td>
+            <td>2026-04-01 13:45:00</td>
+            <td><span style="color:#d46b08;">Pending(NSC)</span></td>
+            <td>Forgot to mention: the DTC appeared immediately after the first power-on during PDI. The car has never been driven on public roads. VIN plate issue is being handled in a separate TI.</td>
+            <td>
+              <div class="file-cell">
+                <div class="file-row"><a class="file-link">PDI_checklist.pdf</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 1 (最早): Dealer 提单 -->
+          <tr>
+            <td>1</td>
+            <td>Olver Svain Hojland</td>
+            <td>Service Store Manager (Dealer)</td>
+            <td>2026-04-01 13:14:27</td>
+            <td><span style="color:#d46b08;">Pending(NSC)</span></td>
+            <td>—</td>
+            <td>
+              <div class="file-cell">
+                <div class="file-row"><a class="file-link">No Vin 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                <div class="file-row"><a class="file-link">DTC 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== Supplementary Explanation (Add Comments) — 按角色+状态控制显示 ===== -->
+    <div class="section" id="sec-supplement">
+      <div class="section-title">Supplementary Explanation</div>
+
+      <!-- 有权限时显示输入区域 -->
+      <div class="comment-area" id="comment-area">
+        <div class="ca-label">Comments:</div>
+        <textarea id="comment-input" placeholder="Enter your comments here. Once submitted, it will be added to the Reply to History list above." maxlength="1000"></textarea>
+        <div class="ca-hint"><span id="char-count">0</span>/1000</div>
+        <div class="ca-upload-label">Attachment:</div>
+        <div class="file-drop">
+          <div class="drop-icon">⬆️</div>
+          <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+          <div class="drop-hint">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div>
+        </div>
+        <div class="ca-footer">
+          <button class="btn" onclick="submitComment()">Add Comments</button>
+        </div>
+      </div>
+
+      <!-- 无权限时显示提示 -->
+      <div id="no-permission" style="display:none;padding:20px;text-align:center;color:#999;font-size:12px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
+        <div style="font-size:24px;margin-bottom:8px;">🔒</div>
+        <div id="no-permission-text">You do not have permission to add comments in the current status.</div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /page-wrap -->
+
+<div class="page-footer"><button class="btn">Edit</button></div>
+
+<!-- Design Notes -->
+<style>
+.design-notes{position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;color:#e0e0e0;padding:16px 24px;font-size:12px;line-height:1.8;z-index:200;max-height:45vh;overflow-y:auto;border-top:3px solid #4a90d9;}
+.design-notes h3{color:#4a90d9;font-size:14px;margin-bottom:8px;}
+.design-notes table{width:100%;border-collapse:collapse;margin:8px 0;}
+.design-notes th{background:#2a2a4a;padding:6px 10px;text-align:left;font-size:11px;color:#7ec8e3;border-bottom:1px solid #3a3a5a;}
+.design-notes td{padding:6px 10px;border-bottom:1px solid #2a2a4a;font-size:11px;color:#ccc;}
+.design-notes code{background:#2a2a4a;padding:1px 4px;border-radius:2px;color:#7ec8e3;font-size:11px;}
+.toggle-notes{position:fixed;bottom:50px;right:24px;z-index:201;padding:6px 14px;border-radius:4px;font-size:11px;cursor:pointer;background:#4a90d9;color:#fff;border:none;}
+</style>
+
+<button class="toggle-notes" onclick="toggleNotes()">📐 Design Notes</button>
+<div class="design-notes" id="design-notes" style="display:none;">
+  <h3>📐 TI 补充 Comments 功能设计说明</h3>
+  <p style="margin-bottom:10px;">核心改动：Supplementary Explanation 的 Add Comments 提交后，数据写入 <code>t_se_bu_dtr_return_xp</code>（approvalHistory 表），混排在 Reply to History 列表中。补充记录带 <code>Supplement</code> 标签区分。按状态+角色控制谁能补充。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>TI 当前状态</th>
+        <th>可补充 Comments 的角色</th>
+        <th>前端判断逻辑</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>PENDING_NSC</td>
+        <td>Dealer（门店）</td>
+        <td><code>operateRoleType === 'SHOP'</code></td>
+      </tr>
+      <tr>
+        <td>REPLIED_NSC</td>
+        <td>NSC（总代）</td>
+        <td><code>operateRoleType === 'NSC'</code></td>
+      </tr>
+      <tr>
+        <td>PENDING_XPENG (Pending Region)</td>
+        <td>NSC（Dealer提单升级时）<br>总代 Importer（NSC自己提单时）</td>
+        <td><code>role==='NSC'</code>（Dealer提单）<br><code>role==='NSC' && submitterRoleType==='NSC'</code>（NSC提单）</td>
+      </tr>
+      <tr>
+        <td>REPLIED_XPENG (Replied Region)</td>
+        <td>Region（总部）</td>
+        <td><code>operateRoleType === 'HOST'</code></td>
+      </tr>
+      <tr>
+        <td>APPLY_FOR_PRE_CLOSURE</td>
+        <td>HQ（总部）</td>
+        <td><code>operateRoleType === 'HOST'</code></td>
+      </tr>
+      <tr>
+        <td>PRE_CLOSED</td>
+        <td>HQ（总部）</td>
+        <td><code>operateRoleType === 'HOST'</code></td>
+      </tr>
+      <tr>
+        <td>APPLY_FOR_CLOSING</td>
+        <td>HQ（总部）</td>
+        <td><code>operateRoleType === 'HOST'</code></td>
+      </tr>
+      <tr>
+        <td>CLOSED</td>
+        <td>HQ（总部）</td>
+        <td><code>operateRoleType === 'HOST'</code></td>
+      </tr>
+      <tr>
+        <td>DRAFT / CANCELLED</td>
+        <td>不可补充</td>
+        <td>隐藏 Add Comments 区域</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:10px;">实现要点：</p>
+  <p>① 补充记录写入 <code>t_se_bu_dtr_return_xp</code> 表，新增 <code>checkType='SUPPLEMENT'</code> 字段区分正式回复和补充</p>
+  <p>② 补充不触发 <code>approvalStatus</code> 变更，不影响状态流转</p>
+  <p>③ Reply to History 列表按时间倒序混排，最新记录在最上方，补充记录行带绿色 Supplement 标签</p>
+  <p>④ 移除原 Supplementary Explanation 的独立展示列表（<code>submitContentList</code>），统一在 Reply to History 中展示</p>
+  <p>⑤ 后端新增接口或改造 <code>submitContent</code>，写入 approvalHistory 表并加角色+状态校验</p>
+</div>
+
+<script>
+// ===== Permission rules =====
+const RULES = {
+  PENDING_NSC:             { allowed: ['SHOP'], note: 'Dealer 可补充' },
+  REPLIED_NSC:             { allowed: ['NSC'], note: 'NSC 可补充' },
+  PENDING_XPENG:           { allowed: ['NSC', 'IMPORTER_IF_SUBMITTER'], note: 'NSC 可补充（Dealer提单升级）；总代可补充（NSC自己提单）' },
+  REPLIED_XPENG:           { allowed: ['HOST'], note: 'Region 可补充' },
+  APPLY_FOR_PRE_CLOSURE:   { allowed: ['HOST'], note: 'HQ（总部）可补充' },
+  PRE_CLOSED:              { allowed: ['HOST'], note: 'HQ（总部）可补充' },
+  APPLY_FOR_CLOSING:       { allowed: ['HOST'], note: 'HQ（总部）可补充' },
+  CLOSED:                  { allowed: ['HOST'], note: 'HQ（总部）可补充' },
+};
+
+const ROLE_NAMES = { SHOP: 'Dealer（门店）', NSC: 'NSC（总代）', HOST: 'HQ（总部）' };
+const ROLE_AVATARS = { SHOP: 'O', NSC: 'R', HOST: '朱' };
+const ROLE_DISPLAY = { SHOP: 'Service Store Manager (Dealer)', NSC: 'Technical Manager (NSC)', HOST: 'Technical Manager (Region)' };
+const USER_NAMES = { SHOP: 'Olver Svain Hojland', NSC: 'Rado Peric', HOST: '朱晓然' };
+
+function canAddComments(status, role, submitter) {
+  const rule = RULES[status];
+  if (!rule) return false;
+  for (const a of rule.allowed) {
+    if (a === role) return true;
+    // Pending(Region): NSC自己提单时，总代(Importer/NSC)可补充
+    if (a === 'IMPORTER_IF_SUBMITTER' && role === 'NSC' && submitter === 'NSC') return true;
+  }
+  return false;
+}
+
+function updateSimulation() {
+  const status = document.getElementById('sim-status').value;
+  const role = document.getElementById('sim-role').value;
+  const submitter = document.getElementById('sim-submitter').value;
+  const allowed = canAddComments(status, role, submitter);
+  const rule = RULES[status];
+
+  // Update hint
+  const hint = document.getElementById('sim-hint');
+  if (allowed) {
+    hint.textContent = '✅ ' + ROLE_NAMES[role] + ' 可补充 Comments';
+    hint.style.color = '#389e0d';
+  } else {
+    hint.textContent = '🔒 ' + ROLE_NAMES[role] + ' 不可补充（' + (rule ? rule.note : '不可补充') + '）';
+    hint.style.color = '#ff4d4f';
+  }
+
+  // Show/hide comment area
+  document.getElementById('comment-area').style.display = allowed ? 'block' : 'none';
+  document.getElementById('no-permission').style.display = allowed ? 'none' : 'block';
+  document.getElementById('no-permission-text').textContent =
+    'Current status: ' + status + ' · Your role: ' + ROLE_NAMES[role] + ' · ' + (rule ? rule.note : 'Comments not allowed');
+
+  // Update status badge
+  const badge = document.getElementById('status-display');
+  const statusNames = {
+    PENDING_NSC: 'Pending(NSC)', REPLIED_NSC: 'Replied(NSC)',
+    PENDING_XPENG: 'Pending(XPENG)', REPLIED_XPENG: 'Replied(XPENG)',
+    APPLY_FOR_PRE_CLOSURE: 'Apply for Pre Closure', PRE_CLOSED: 'Pre Closed',
+    APPLY_FOR_CLOSING: 'Apply for Closing', CLOSED: 'Closed'
+  };
+  badge.textContent = statusNames[status] || status;
+  badge.className = 'status-badge ' + (status.includes('REPLIED') ? 'status-replied' : 'status-pending');
+
+  // Update user info
+  document.getElementById('avatar-icon').textContent = ROLE_AVATARS[role];
+  document.getElementById('user-name').textContent = USER_NAMES[role];
+  document.getElementById('user-role').textContent = ROLE_DISPLAY[role];
+}
+
+function submitComment() {
+  const text = document.getElementById('comment-input').value.trim();
+  if (!text) { alert('Please enter comments'); return; }
+
+  const role = document.getElementById('sim-role').value;
+  const status = document.getElementById('sim-status').value;
+  const statusNames = {
+    PENDING_NSC: 'Pending(NSC)', REPLIED_NSC: 'Replied(NSC)',
+    PENDING_XPENG: 'Pending(XPENG)', REPLIED_XPENG: 'Replied(XPENG)',
+    APPLY_FOR_PRE_CLOSURE: 'Apply for Pre Closure', PRE_CLOSED: 'Pre Closed',
+    APPLY_FOR_CLOSING: 'Apply for Closing', CLOSED: 'Closed'
+  };
+
+  // Add row to top of table (descending order)
+  const tbody = document.querySelector('#history-table tbody');
+  const rowCount = tbody.rows.length + 1;
+  const now = new Date();
+  const timeStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+
+  const tr = document.createElement('tr');
+  tr.className = '';
+  tr.innerHTML = '<td>' + rowCount + '</td>' +
+    '<td>' + USER_NAMES[role] + '</td>' +
+    '<td>' + ROLE_DISPLAY[role] + '</td>' +
+    '<td>' + timeStr + '</td>' +
+    '<td>' + (statusNames[status] || status) + '</td>' +
+    '<td>' + text + '</td>' +
+    '<td>-</td>';
+  tbody.insertBefore(tr, tbody.firstChild);
+
+  // Clear input
+  document.getElementById('comment-input').value = '';
+  document.getElementById('char-count').textContent = '0';
+
+  // Scroll to new row
+  tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  tr.style.animation = 'highlightNew 1.5s ease';
+
+  alert('✅ Comment added to Reply to History!\n\nAPI: submitContent → writes to t_se_bu_dtr_return_xp\ncheckType: SUPPLEMENT\napprovalStatus: unchanged (' + status + ')');
+}
+
+// Character counter
+document.getElementById('comment-input').addEventListener('input', function() {
+  document.getElementById('char-count').textContent = this.value.length;
+});
+
+// Highlight animation
+const style = document.createElement('style');
+style.textContent = '@keyframes highlightNew{0%{background:#d4edda;}100%{background:#f0faf5;}}';
+document.head.appendChild(style);
+
+// Toggle design notes
+function toggleNotes() {
+  const n = document.getElementById('design-notes');
+  n.style.display = n.style.display === 'none' ? 'block' : 'none';
+}
+
+// Anchor scroll
+document.querySelectorAll('.anchor-nav a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Init
+updateSimulation();
+</script>
+
+</body>
+</html>

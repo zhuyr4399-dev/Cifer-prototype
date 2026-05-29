@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PDI检测 - 骁龙APP原型 V2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;color:#333;max-width:390px;margin:0 auto;min-height:100vh}
+.status-bar{height:44px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.status-bar .time{font-size:15px;font-weight:700}
+.nav-bar{height:48px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid #f0f0f0}
+.nav-bar .back{position:absolute;left:16px;font-size:22px;color:#333;cursor:pointer}
+.nav-bar .title{font-size:17px;font-weight:600}
+.nav-bar .more{position:absolute;right:16px;font-size:18px;color:#333;cursor:pointer}
+.search-bar{display:flex;align-items:center;padding:10px 16px;background:#fff;gap:10px}
+.search-input{flex:1;height:36px;background:#f5f5f5;border-radius:18px;border:none;padding:0 14px;font-size:13px;color:#999;display:flex;align-items:center;cursor:pointer}
+.search-input span{color:#ccc;margin-right:6px}
+.scan-btn{width:36px;height:36px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;border:none}
+.tab-bar{display:flex;background:#fff;padding:0 16px;border-bottom:1px solid #f0f0f0}
+.tab-item{padding:10px 0;margin-right:20px;font-size:13px;color:#999;cursor:pointer;position:relative;white-space:nowrap}
+.tab-item.active{color:#1677ff;font-weight:600}
+.tab-item.active::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:#1677ff;border-radius:1px}
+.list-container{padding:12px 16px;padding-bottom:80px}
+.card{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);cursor:pointer}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.card-title{font-size:15px;font-weight:700;color:#333}
+.badge{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.badge-green{background:#f6ffed;color:#52c41a}
+.badge-orange{background:#fff7e6;color:#fa8c16}
+.badge-blue{background:#e6f7ff;color:#1677ff}
+.badge-gray{background:#f5f5f5;color:#999}
+.card-info{font-size:11px;color:#666;white-space:nowrap}
+.card-detail{font-size:12px;color:#999;line-height:1.8;margin-top:6px}
+.card-detail .lb{color:#999}.card-detail .vl{color:#333}
+.card-action{text-align:right;font-size:13px;color:#1677ff;margin-top:6px}
+.float-btn{position:fixed;bottom:80px;right:20px;width:56px;height:56px;background:#1677ff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(22,119,255,0.4);cursor:pointer;z-index:100;font-size:24px;color:#fff}
+</style>
+</head>
+<body>
+
+<!-- ========== 页面1: PDI检测列表页 ========== -->
+<div id="pg-list">
+  <div class="status-bar"><span class="time">20:20</span><div>📶 🔋</div></div>
+  <div class="nav-bar">
+    <span class="back">✕</span>
+    <span class="title">PDI检测</span>
+    <span class="more">···</span>
+  </div>
+  <div class="search-bar">
+    <div class="search-input" onclick="go('scan')"><span>🔍</span> 扫描/输入VIN码</div>
+    <button class="scan-btn" onclick="go('scan')">📷</button>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="filterTab('all',this)">全部<span style="font-size:11px;color:#999">(8)</span></div>
+    <div class="tab-item" onclick="filterTab('unchecked',this)">未检查<span style="font-size:11px;color:#999">(2)</span></div>
+    <div class="tab-item" onclick="filterTab('pre-checked',this)">已预检<span style="font-size:11px;color:#999">(3)</span></div>
+    <div class="tab-item" onclick="filterTab('done',this)">已完成<span style="font-size:11px;color:#999">(3)</span></div>
+  </div>
+  <div class="list-container">
+
+    <!-- 已预检（未入库时完成的PDI检查） -->
+    <div class="card" data-type="pre-checked" onclick="go('detail-noorder')">
+      <div class="card-header"><span class="card-title">新车准备</span><span class="badge badge-orange">已预检</span></div>
+      <div class="card-info">LFV5A24GXH5537639 | 小鹏G6 | 星辰黑 | 服务管家:李明</div>
+      <div class="card-detail">
+        <div><span class="lb">检测技师：</span><span class="vl">李明</span></div>
+        <div><span class="lb">检测时间：</span><span class="vl">2026-04-13 09:15</span></div>
+        <div><span class="lb">施工单号：</span><span class="vl" style="color:#fa8c16">暂无</span></div>
+      </div>
+      <div class="card-action">查看详情 ›</div>
+    </div>
+
+    <div class="card" data-type="pre-checked" onclick="go('detail-noorder')">
+      <div class="card-header"><span class="card-title">新车准备</span><span class="badge badge-orange">已预检</span></div>
+      <div class="card-info">SC944AOW01230343 | 小鹏X9 | 极光绿 | 服务管家:王强</div>
+      <div class="card-detail">
+        <div><span class="lb">检测技师：</span><span class="vl">王强</span></div>
+        <div><span class="lb">检测时间：</span><span class="vl">2026-04-13 11:20</span></div>
+        <div><span class="lb">施工单号：</span><span class="vl" style="color:#fa8c16">暂无</span></div>
+      </div>
+      <div class="card-action">查看详情 ›</div>
+    </div>
+
+    <!-- 未检查（已入库但未做PDI检测） -->
+    <div class="card" data-type="unchecked" onclick="go('workshop-jump')">
+      <div class="card-header"><span class="card-title">新车准备</span><span class="badge badge-gray">未检查</span></div>
+      <div class="card-info">LINSPGB5MA050789 | 小鹏P7 | 天辰灰 | 服务管家:赵磊</div>
+      <div class="card-detail">
+        <div><span class="lb">检测技师：</span><span class="vl">—</span></div>
+        <div><span class="lb">检测时间：</span><span class="vl">—</span></div>
+        <div><span class="lb">施工单号：</span><span class="vl">SC935DOA01260415001</span></div>
+      </div>
+      <div class="card-action">前往车间管理完成检测 ›</div>
+    </div>
+
+    <div class="card" data-type="unchecked" onclick="go('workshop-jump')">
+      <div class="card-header"><span class="card-title">新车准备</span><span class="badge badge-gray">未检查</span></div>
+      <div class="card-info">LFV5A24GXH5538812 | 小鹏G9 | 月光银 | 服务管家:张伟</div>
+      <div class="card-detail">
+        <div><span class="lb">检测技师：</span><span class="vl">张伟</span></div>
+        <div><span class="lb">检测时间：</span><span class="vl">2026-04-14 08:30</span></div>
+        <div><span class="lb">施工单号：</span><span class="vl">SC935DOA01260414002</span></div>
+      </div>
+      <div class="card-action">前往车间管理完成检测 ›</div>
+    </div>
+
+    <div class="card" data-type="pre-checked" onclick="go('workshop-jump')">
+      <div class="card-header"><span class="card-title">新车准备</span><span class="badge badge-orange">已预检</span></div>
+      <div class="card-info">LINSPGB5MA060123 | 小鹏P7 | 星辰黑 | 服务管家:陈荟宇</div>
+      <div class="card-detail">
+        <div><span class="lb">检测技师：</span><span class="vl">—</span></div>
+        <div><span class="lb">检测时间：</span><span class="vl">—</span></div>
+        <div><span class="lb">施工单号：</span><span class="vl">SC935DOA01260416001</span></div>
+      </div>
+      <div class="card-action">前往车间管理完成检测 ›</div>
+    </div>
+
+    <!-- 已完成（在车间管理完成了PDI检查） -->
+    <div class="card" data-type="done" onclick="go('detail-done')">
+      <div class="card-header"><span class="card-title">新车准备</span><span class="badge badge-green">已完成</span></div>
+      <div class="card-info">LINSPGB5MA030234 | 小鹏P7 | 月光银 | 服务管家:张伟</div>
+      <div class="card-detail">
+        <div><span class="lb">检测技师：</span><span class="vl">张伟</span></div>
+        <div><span class="lb">检测时间：</span><span class="vl">2026-04-12 14:30</span></div>
+        <div><span class="lb">施工单号：</span><span class="vl">SC935DOA01260412001</span></div>
+      </div>
+      <div class="card-action">查看详情 ›</div>
+    </div>
+
+    <div class="card" data-type="done" onclick="go('detail-done')">
+      <div class="card-header"><span class="card-title">新车准备</span><span class="badge badge-green">已完成</span></div>
+      <div class="card-info">LINSPGB5MA040567 | 小鹏P7 | 天辰灰 | 服务管家:赵磊</div>
+      <div class="card-detail">
+        <div><span class="lb">检测技师：</span><span class="vl">赵磊</span></div>
+        <div><span class="lb">检测时间：</span><span class="vl">2026-04-11 16:45</span></div>
+        <div><span class="lb">施工单号：</span><span class="vl">SC935DOA01260411003</span></div>
+      </div>
+      <div class="card-action">查看详情 ›</div>
+    </div>
+
+    <div class="card" data-type="done" onclick="go('detail-done')">
+      <div class="card-header"><span class="card-title">新车准备</span><span class="badge badge-green">已完成</span></div>
+      <div class="card-info">LFV5A24GXH5539001 | 小鹏G6 | 月光银 | 服务管家:李明</div>
+      <div class="card-detail">
+        <div><span class="lb">检测技师：</span><span class="vl">李明</span></div>
+        <div><span class="lb">检测时间：</span><span class="vl">2026-04-10 10:00</span></div>
+        <div><span class="lb">施工单号：</span><span class="vl">SC935DOA01260410001</span></div>
+      </div>
+      <div class="card-action">查看详情 ›</div>
+    </div>
+
+  </div>
+  <div class="float-btn" onclick="go('scan')">📷</div>
+</div>
+
+<!-- ========== 页面2: 扫码页 ========== -->
+<div id="pg-scan" class="overlay" style="display:none;background:#000">
+  <div style="height:48px;display:flex;align-items:center;justify-content:center;position:relative">
+    <span style="position:absolute;left:16px;font-size:22px;color:#fff;cursor:pointer" onclick="go('list')">‹</span>
+    <span style="font-size:17px;font-weight:600;color:#fff">扫描VIN码</span>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative">
+    <div style="width:260px;height:260px;border:2px solid rgba(255,255,255,0.3);border-radius:12px;position:relative">
+      <div style="position:absolute;top:0;left:10px;right:10px;height:2px;background:linear-gradient(90deg,transparent,#1677ff,transparent);animation:sc 2s linear infinite"></div>
+    </div>
+    <div style="position:absolute;bottom:40px;color:rgba(255,255,255,0.7);font-size:13px">将VIN码对准扫描框</div>
+  </div>
+  <div style="padding:20px 16px 40px;display:flex;flex-direction:column;align-items:center;gap:12px">
+    <button onclick="go('manual')" style="width:100%;height:44px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:22px;color:#fff;font-size:14px;cursor:pointer">⌨️ 手动输入VIN码</button>
+    <span style="color:rgba(255,255,255,0.6);font-size:12px">🔦 开启手电筒</span>
+  </div>
+  <style>@keyframes sc{0%{top:0}100%{top:256px}}</style>
+</div>
+
+<!-- ========== 页面2.5: 手动输入VIN（含距离校验提示） ========== -->
+<div id="pg-manual" class="overlay" style="display:none;background:#f5f5f5">
+  <div class="nav-bar"><span class="back" onclick="go('scan')">‹</span><span class="title">输入VIN码</span></div>
+  <div style="padding:20px 16px">
+    <div style="font-size:14px;font-weight:500;margin-bottom:8px">请输入车辆VIN码（支持后6~8位）</div>
+    <div style="display:flex;gap:10px">
+      <input type="text" placeholder="请输入VIN码" maxlength="17" value="LFV5A24GXH5537639" style="flex:1;height:44px;border:1px solid #d9d9d9;border-radius:8px;padding:0 12px;font-size:15px;background:#fff">
+      <button onclick="go('confirm')" style="width:44px;height:44px;background:#1677ff;border:none;border-radius:8px;color:#fff;font-size:18px;cursor:pointer">🔍</button>
+    </div>
+    <div style="font-size:12px;color:#999;margin-top:8px">VIN码可在车辆前挡风玻璃左下角或铭牌上找到</div>
+    <div style="margin-top:12px;padding:10px 12px;background:#fff7e6;border:1px solid #ffd591;border-radius:8px;font-size:12px;color:#ad8b00;line-height:1.6">
+      ⚠️ 手动输入VIN码时，系统将校验人车距离（≤500米）。如距离超出范围，请使用扫码方式发起检测。
+    </div>
+  </div>
+</div>
+
+<!-- ========== 距离校验失败弹窗 ========== -->
+<div id="pg-distance-fail" class="overlay" style="display:none;background:rgba(0,0,0,0.5)">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:14px;padding:24px 20px;width:320px;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">📍</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px">距离校验未通过</div>
+    <div style="font-size:13px;color:#999;line-height:1.6;margin-bottom:20px">
+      您当前位置距离车辆超过500米，无法通过手动输入方式发起PDI检测。<br><br>请移动到车辆附近，或使用扫码方式发起检测。
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="go('list')" style="flex:1;height:40px;border-radius:20px;font-size:14px;background:#f5f5f5;color:#666;border:none;cursor:pointer">返回</button>
+      <button onclick="go('scan')" style="flex:1;height:40px;border-radius:20px;font-size:14px;background:#1677ff;color:#fff;border:none;cursor:pointer">去扫码</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 页面3: 车辆信息确认页 ========== -->
+<div id="pg-confirm" class="overlay" style="display:none;background:#f5f5f5;overflow-y:auto">
+  <div class="nav-bar"><span class="back" onclick="go('scan')">‹</span><span class="title">确认车辆信息</span></div>
+  <div style="background:#fff;margin:12px 16px;border-radius:10px;padding:16px">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px">P7后驱长续航 尊享版</div>
+    <div style="font-size:12px;color:#999;margin-bottom:12px">VIN: LFV5A24GXH5537639</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><div style="font-size:12px;color:#999">订单号</div><div style="font-size:13px;font-weight:500">XP20260413001</div></div>
+      <div><div style="font-size:12px;color:#999">车身颜色</div><div style="font-size:13px;font-weight:500">月光银</div></div>
+      <div><div style="font-size:12px;color:#999">内饰</div><div style="font-size:13px;font-weight:500">炫酷黑主题</div></div>
+      <div><div style="font-size:12px;color:#999">所属门店</div><div style="font-size:13px;font-weight:500">—（未入库）</div></div>
+    </div>
+  </div>
+  <div style="margin:0 16px;padding:10px 12px;background:#e6f7ff;border-radius:8px;font-size:12px;color:#1677ff;line-height:1.6">
+    ℹ️ 车辆信息来源于订单系统（OTD），请确认信息无误后发起PDI检测。
+    <span style="display:block;margin-top:8px;color:#fa8c16;background:#fff7e6;border-radius:4px;padding:6px 10px">⚠️ 该车辆暂未入库，检测结果将暂存，待入库生成施工单后自动关联。</span>
+  </div>
+  <div style="position:fixed;bottom:0;left:0;right:0;max-width:390px;margin:0 auto;background:#fff;padding:12px 16px 30px;display:flex;gap:12px;border-top:1px solid #f0f0f0">
+    <button onclick="go('list')" style="flex:1;height:44px;border-radius:22px;font-size:15px;background:#f5f5f5;color:#666;border:none;cursor:pointer">取消</button>
+    <button onclick="go('pdi-check')" style="flex:1;height:44px;border-radius:22px;font-size:15px;background:#1677ff;color:#fff;border:none;cursor:pointer">发起PDI检测</button>
+  </div>
+</div>
+
+<!-- ========== 页面4: PDI检测页 ========== -->
+<div id="pg-pdi-check" class="overlay" style="display:none;background:#f5f5f5;overflow-y:auto">
+  <div class="nav-bar"><span class="back" onclick="go('list')">‹</span><span class="title">PDI检测</span></div>
+  <div style="background:#fff;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:16px;font-weight:700">P7后驱长续航 尊享版</span>
+      <span class="badge badge-orange">NG待修</span>
+    </div>
+    <div style="font-size:12px;color:#999;line-height:1.8;margin-top:6px">
+      订单号：XP20260413001<br>VIN：LFV5A24GXH5537639<br>车身：月光银 | 内饰：炫酷黑主题
+    </div>
+  </div>
+  <!-- 智能诊断 -->
+  <div style="background:#fff;margin-top:8px;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:16px;font-weight:700">智能诊断检查</span>
+      <span class="badge badge-green">已通过</span>
+    </div>
+    <div style="font-size:14px;color:#333;padding:8px 0;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+      › 故障码/告警/版本号/服务活动 <span style="float:right;font-size:13px;color:#1677ff">重新检查</span>
+    </div>
+    <div style="display:none;padding-left:16px;font-size:13px;color:#666">
+      <div style="display:flex;justify-content:space-between;padding:6px 0">故障码检测<span style="color:#52c41a">已通过 ✓</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0">告警信息检测<span style="color:#52c41a">已通过 ✓</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0">软件版本号检测<span style="color:#52c41a">已通过 ✓</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0">服务活动检测<span style="color:#52c41a">已通过 ✓</span></div>
+    </div>
+  </div>
+  <!-- 自动PDI -->
+  <div style="background:#fff;margin-top:8px;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:16px;font-weight:700">自动PDI检查</span>
+      <span class="badge" style="background:#fff1f0;color:#ff4d4f">未通过</span>
+    </div>
+    <div style="font-size:14px;color:#333;padding:8px 0;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+      › 灯光&四门两盖及附属部件 ⓘ <span style="float:right;font-size:13px;color:#1677ff">重新检查</span>
+    </div>
+    <div style="padding-left:16px;font-size:13px;color:#666">
+      <div style="display:flex;justify-content:space-between;padding:6px 0">大灯远/近灯关切换，远近光高低调节<span style="color:#52c41a">已通过 ✏️</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0">转向灯打开/关闭<span style="color:#ff4d4f">未通过 ✏️</span></div>
+      <div style="font-size:12px;color:#999;background:#fafafa;padding:6px 10px;border-radius:6px;margin:4px 0 8px">这里是反馈的未通过的原因说明。</div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0">大灯远/近灯关切换，远近光高低调节<span style="color:#52c41a">已通过 ✏️</span></div>
+    </div>
+  </div>
+  <!-- 人工PDI -->
+  <div style="background:#fff;margin-top:8px;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:16px;font-weight:700">人工PDI检查</span>
+      <span class="badge badge-green">已通过</span>
+    </div>
+    <div style="font-size:14px;color:#333;padding:8px 0">› 外观检查项 <span style="float:right;font-size:13px;color:#52c41a">已完成</span></div>
+  </div>
+  <!-- 重点检查项 -->
+  <div style="background:#fff;margin-top:8px;padding:14px 16px;margin-bottom:80px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:16px;font-weight:700">重点检查项</span>
+      <span class="badge badge-green">已通过</span>
+    </div>
+    <div style="font-size:14px;color:#333;padding:8px 0">› 安全系统检查 <span style="float:right;font-size:13px;color:#52c41a">已完成</span></div>
+  </div>
+  <div style="position:fixed;bottom:0;left:0;right:0;max-width:390px;margin:0 auto;background:#fff;padding:12px 16px 30px;display:flex;gap:12px;border-top:1px solid #f0f0f0">
+    <button style="flex:1;height:44px;border-radius:22px;font-size:15px;background:#f5f5f5;color:#1677ff;border:1px solid #1677ff;cursor:pointer">暂存</button>
+    <button onclick="go('complete-ok')" style="flex:1;height:44px;border-radius:22px;font-size:15px;background:#1677ff;color:#fff;border:none;cursor:pointer">完成检测</button>
+  </div>
+</div>
+
+<!-- ========== 页面5: 完成成功页 ========== -->
+<div id="pg-complete-ok" class="overlay" style="display:none;background:#fff">
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px">
+    <div style="font-size:64px;margin-bottom:16px">🎉</div>
+    <div style="font-size:18px;font-weight:600;margin-bottom:8px">PDI检测完成</div>
+    <div style="display:inline-block;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:500;margin-bottom:20px;background:#fff7e6;color:#fa8c16">已预检</div>
+    <div style="font-size:13px;color:#999;text-align:center;line-height:1.6;margin-bottom:30px">
+      检测结果已保存<br>VIN：LFV5A24GXH5537639<br>待入库生成施工单后将自动关联
+    </div>
+    <button onclick="go('list')" style="width:200px;height:44px;background:#1677ff;color:#fff;border:none;border-radius:22px;font-size:15px;cursor:pointer">返回列表</button>
+  </div>
+</div>
+
+<!-- ========== 页面6: 未入库已完成 详情页 ========== -->
+<div id="pg-detail-noorder" class="overlay" style="display:none;background:#f5f5f5;overflow-y:auto">
+  <div class="nav-bar"><span class="back" onclick="go('list')">‹</span><span class="title">PDI检测详情</span></div>
+  <div style="background:#fff;margin:12px 16px;border-radius:10px;padding:14px 16px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between">车辆信息<span class="badge badge-orange">已预检</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">VIN</span><span style="font-size:13px">LFV5A24GXH5537639</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">车型</span><span style="font-size:13px">小鹏G6 | 星辰黑</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">订单号</span><span style="font-size:13px">XP20260413002</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">所属门店</span><span style="font-size:13px">—（未入库）</span></div>
+  </div>
+  <div style="background:#fff;margin:0 16px 12px;border-radius:10px;padding:14px 16px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px">检测信息</div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">检测时间</span><span style="font-size:13px">2026-04-13 09:15</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">检测技师</span><span style="font-size:13px">李明</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">施工单号</span><span style="font-size:13px;color:#fa8c16">暂无（待入库后自动关联）</span></div>
+  </div>
+  <div style="background:#fff;margin:0 16px 12px;border-radius:10px;padding:14px 16px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px">检测结果概览</div>
+    <div style="display:flex;gap:10px">
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#f0f5ff"><div style="font-size:20px;font-weight:700;color:#1677ff">42</div><div style="font-size:11px;color:#1677ff">检测总项</div></div>
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#f6ffed"><div style="font-size:20px;font-weight:700;color:#52c41a">41</div><div style="font-size:11px;color:#52c41a">通过</div></div>
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#fff1f0"><div style="font-size:20px;font-weight:700;color:#ff4d4f">1</div><div style="font-size:11px;color:#ff4d4f">未通过</div></div>
+    </div>
+  </div>
+  <div style="margin:0 16px;padding:10px 12px;background:#fff7e6;border:1px solid #ffd591;border-radius:8px;font-size:12px;color:#ad8b00;line-height:1.6">
+    ⚠️ 该检测结果暂未关联施工单。当车辆入库生成施工单后，系统将通过VIN自动关联。
+  </div>
+</div>
+
+<!-- ========== 页面7: 已入库已完成 详情页 ========== -->
+<div id="pg-detail-done" class="overlay" style="display:none;background:#f5f5f5;overflow-y:auto">
+  <div class="nav-bar"><span class="back" onclick="go('list')">‹</span><span class="title">PDI检测详情</span></div>
+  <div style="background:#fff;margin:12px 16px;border-radius:10px;padding:14px 16px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between">车辆信息<span class="badge badge-green">已完成</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">VIN</span><span style="font-size:13px">LINSPGB5MA030234</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">车型</span><span style="font-size:13px">小鹏P7 | 月光银</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">订单号</span><span style="font-size:13px">XP20260412001</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">所属门店</span><span style="font-size:13px">广州龙御行服务中心</span></div>
+  </div>
+  <div style="background:#fff;margin:0 16px 12px;border-radius:10px;padding:14px 16px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px">检测信息</div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">检测时间</span><span style="font-size:13px">2026-04-12 14:30</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">检测技师</span><span style="font-size:13px">张伟</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">施工单号</span><span style="font-size:13px;color:#1677ff">SC935DOA01260412001</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#999;font-size:13px">关联时间</span><span style="font-size:13px">2026-04-12 16:00</span></div>
+  </div>
+  <div style="background:#fff;margin:0 16px 12px;border-radius:10px;padding:14px 16px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px">检测结果概览</div>
+    <div style="display:flex;gap:10px">
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#f0f5ff"><div style="font-size:20px;font-weight:700;color:#1677ff">42</div><div style="font-size:11px;color:#1677ff">检测总项</div></div>
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#f6ffed"><div style="font-size:20px;font-weight:700;color:#52c41a">40</div><div style="font-size:11px;color:#52c41a">通过</div></div>
+      <div style="flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#fff1f0"><div style="font-size:20px;font-weight:700;color:#ff4d4f">2</div><div style="font-size:11px;color:#ff4d4f">未通过</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 页面8: 已入库未完成 跳转提示 ========== -->
+<div id="pg-workshop-jump" class="overlay" style="display:none;background:rgba(0,0,0,0.5)">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:14px;padding:24px 20px;width:320px;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">🔧</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px">前往车间管理</div>
+    <div style="font-size:13px;color:#999;line-height:1.6;margin-bottom:20px">
+      该车辆已入库，将带参跳转到车间管理页面完成PDI检测。<br><br>
+      施工单号：SC935DOA01260415001
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="go('list')" style="flex:1;height:40px;border-radius:20px;font-size:14px;background:#f5f5f5;color:#666;border:none;cursor:pointer">取消</button>
+      <button onclick="go('workshop-pdi')" style="flex:1;height:40px;border-radius:20px;font-size:14px;background:#1677ff;color:#fff;border:none;cursor:pointer">前往</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 页面9: 车间管理PDI单（关联Banner） ========== -->
+<div id="pg-workshop-pdi" class="overlay" style="display:none;background:#f5f5f5;overflow-y:auto">
+  <div class="nav-bar"><span class="back" onclick="go('list')">‹</span><span class="title">PDI检测</span></div>
+  <div style="background:#fff;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:16px;font-weight:700">P7后驱长续航 尊享版</span>
+      <span class="badge badge-orange">NG待修</span>
+    </div>
+    <div style="font-size:12px;color:#999;line-height:1.8;margin-top:6px">
+      施工单号：SC935DOA01260415001<br>VIN：LINSPGB5MA050789<br>车身：天辰灰 | 内饰：炫酷黑主题
+    </div>
+  </div>
+  <!-- 关联Banner -->
+  <div id="link-banner" style="margin:12px 16px;padding:12px 14px;background:linear-gradient(135deg,#e6f7ff,#f0f5ff);border:1px solid #91d5ff;border-radius:10px">
+    <div style="font-size:14px;font-weight:600;color:#1677ff;margin-bottom:6px">🔗 发现已有PDI检测结果</div>
+    <div style="font-size:12px;color:#666;line-height:1.6">系统检测到该车辆（门店+VIN匹配）已有一条未关联的PDI自动化检测结果，是否关联到当前施工单？</div>
+    <div style="font-size:12px;color:#999;margin-top:6px">检测时间：2026-04-13 09:15 | 检测技师：李明</div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button onclick="alert('已关联！自动化检测部分将自动填充。')" style="padding:6px 16px;border-radius:16px;font-size:12px;cursor:pointer;border:none;background:#1677ff;color:#fff">关联并填充</button>
+      <button onclick="document.getElementById('link-banner').style.display='none'" style="padding:6px 16px;border-radius:16px;font-size:12px;cursor:pointer;background:#fff;color:#666;border:1px solid #d9d9d9">忽略</button>
+    </div>
+  </div>
+  <!-- 检查组 -->
+  <div style="background:#fff;margin-top:8px;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:16px;font-weight:700">智能诊断检查</span><span class="badge badge-green">已通过</span>
+    </div>
+    <div style="font-size:11px;color:#1677ff;background:#f0f5ff;padding:4px 8px;border-radius:4px;display:inline-block;margin-bottom:8px">📎 已从PDI检测结果自动填充</div>
+    <div style="font-size:14px;color:#333;padding:8px 0">› 故障码/告警/版本号/服务活动 <span style="float:right;font-size:13px;color:#1677ff">重新检查</span></div>
+  </div>
+  <div style="background:#fff;margin-top:8px;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:16px;font-weight:700">自动PDI检查</span><span class="badge" style="background:#fff1f0;color:#ff4d4f">未通过</span>
+    </div>
+    <div style="font-size:11px;color:#1677ff;background:#f0f5ff;padding:4px 8px;border-radius:4px;display:inline-block;margin-bottom:8px">📎 已从PDI检测结果自动填充</div>
+    <div style="font-size:14px;color:#333;padding:8px 0">› 灯光&四门两盖及附属部件 <span style="float:right;font-size:13px;color:#1677ff">重新检查</span></div>
+  </div>
+  <div style="background:#fff;margin-top:8px;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:16px;font-weight:700">人工PDI检查</span><span class="badge" style="background:#f0f0f0;color:#999">待检查</span>
+    </div>
+    <div style="font-size:11px;color:#fa8c16;background:#fff7e6;padding:4px 8px;border-radius:4px;display:inline-block;margin-bottom:8px">⚠️ 需人工完成检查</div>
+    <div style="font-size:14px;color:#333;padding:8px 0">› 外观检查项 <span style="float:right;font-size:13px;color:#fa8c16">待检查</span></div>
+  </div>
+  <div style="background:#fff;margin-top:8px;padding:14px 16px;margin-bottom:80px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:16px;font-weight:700">重点检查项</span><span class="badge" style="background:#f0f0f0;color:#999">待检查</span>
+    </div>
+    <div style="font-size:14px;color:#333;padding:8px 0">› 安全系统检查 <span style="float:right;font-size:13px;color:#fa8c16">待检查</span></div>
+  </div>
+  <div style="position:fixed;bottom:0;left:0;right:0;max-width:390px;margin:0 auto;background:#fff;padding:12px 16px 30px;display:flex;gap:12px;border-top:1px solid #f0f0f0">
+    <button style="flex:1;height:44px;border-radius:22px;font-size:15px;background:#f5f5f5;color:#1677ff;border:1px solid #1677ff;cursor:pointer">暂存</button>
+    <button style="flex:1;height:44px;border-radius:22px;font-size:15px;background:#1677ff;color:#fff;border:none;cursor:pointer">完成检测</button>
+  </div>
+</div>
+
+<!-- ========== 页面10: APK拉起失败精细化提醒 ========== -->
+<div id="pg-apk-error" class="overlay" style="display:none;background:rgba(0,0,0,0.5)">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:14px;padding:24px 20px;width:320px;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">⚠️</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px">自动化检测启动失败</div>
+    <div style="font-size:13px;color:#999;line-height:1.6;margin-bottom:16px">错误码：3004</div>
+    <div style="font-size:14px;color:#333;line-height:1.6;margin-bottom:20px;text-align:left;background:#fff7e6;padding:12px;border-radius:8px;border:1px solid #ffd591">
+      <div style="font-weight:600;margin-bottom:6px">车辆大屏未点亮</div>
+      <div style="font-size:12px;color:#666">请确认车辆已通电且中控大屏已亮起后，再重新发起自动化检测。</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="go('pdi-check')" style="flex:1;height:40px;border-radius:20px;font-size:14px;background:#f5f5f5;color:#666;border:none;cursor:pointer">返回</button>
+      <button onclick="go('pdi-check')" style="flex:1;height:40px;border-radius:20px;font-size:14px;background:#1677ff;color:#fff;border:none;cursor:pointer">重新检测</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 全局样式和JS ========== -->
+<style>
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;max-width:390px;margin:0 auto;z-index:200;display:flex;flex-direction:column}
+</style>
+<script>
+function go(name){
+  document.querySelectorAll('.overlay').forEach(function(el){el.style.display='none'});
+  var target=document.getElementById('pg-'+name);
+  if(target)target.style.display='flex';
+}
+function filterTab(type,el){
+  document.querySelectorAll('.tab-item').forEach(function(t){t.classList.remove('active')});
+  el.classList.add('active');
+  document.querySelectorAll('.card').forEach(function(c){
+    c.style.display=(type==='all'||c.dataset.type===type)?'block':'none';
+  });
+}
+</script>
+</body>
+</html>

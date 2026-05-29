@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可视化资料配置</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; font-size:13px; color:#333; background:#f0f2f5; }
+
+/* 顶部导航 */
+.top-bar { height:40px; background:#1a1a2e; display:flex; align-items:center; padding:0 12px; color:#fff; gap:8px; }
+.top-bar .logo { font-size:14px; font-weight:bold; color:#4a90d9; margin-right:8px; }
+.top-bar .tab-item { font-size:12px; color:#ccc; padding:4px 10px; background:#2a2a3e; border-radius:3px 3px 0 0; cursor:pointer; white-space:nowrap; }
+.top-bar .tab-item.active { background:#3a3a5e; color:#fff; }
+.top-bar .right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+.top-bar .search-box { background:#2a2a3e; border:none; border-radius:3px; padding:3px 8px; color:#aaa; font-size:12px; width:80px; }
+.top-bar .user { font-size:12px; color:#ccc; }
+
+/* 主布局 */
+.layout { display:flex; height:calc(100vh - 40px); }
+
+/* 左侧导航 */
+.sidebar { width:60px; background:#1e2a3a; display:flex; flex-direction:column; align-items:center; padding-top:8px; flex-shrink:0; }
+.sidebar .nav-item { width:100%; padding:8px 0; text-align:center; color:#8899aa; font-size:10px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; }
+.sidebar .nav-item .icon { font-size:15px; }
+.sidebar .nav-item.active { color:#4a90d9; background:rgba(74,144,217,0.1); }
+
+/* 内容区 */
+.content { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* 搜索栏 */
+.search-bar { background:#fff; padding:12px 16px; border-bottom:1px solid #e8e8e8; }
+.search-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+.search-row:last-child { margin-bottom:0; }
+.search-item { display:flex; align-items:center; gap:6px; }
+.search-item label { font-size:12px; color:#666; white-space:nowrap; }
+.search-item select, .search-item input { border:1px solid #d9d9d9; border-radius:3px; padding:4px 8px; font-size:12px; min-width:140px; }
+.search-actions { display:flex; gap:8px; margin-left:auto; }
+
+/* 工具栏 */
+.toolbar { background:#fff; padding:8px 16px; border-bottom:1px solid #e8e8e8; display:flex; align-items:center; gap:8px; }
+.toolbar .left { display:flex; gap:8px; }
+.toolbar .right { margin-left:auto; display:flex; gap:8px; align-items:center; font-size:12px; color:#666; }
+
+/* 按钮 */
+.btn { padding:5px 12px; border-radius:3px; font-size:12px; cursor:pointer; border:1px solid #d9d9d9; background:#fff; color:#333; }
+.btn:hover { border-color:#4a90d9; color:#4a90d9; }
+.btn-primary { background:#4a90d9; color:#fff; border-color:#4a90d9; }
+.btn-primary:hover { background:#3a7bc8; }
+.btn-sm { padding:3px 8px; font-size:11px; }
+.btn-link { border:none; background:none; color:#4a90d9; cursor:pointer; padding:0 4px; font-size:12px; }
+.btn-link:hover { text-decoration:underline; }
+.btn-link.danger { color:#cf1322; }
+
+/* 表格 */
+.table-wrap { flex:1; overflow:auto; padding:0 16px; background:#f0f2f5; }
+.data-table { width:100%; border-collapse:collapse; background:#fff; margin-top:8px; }
+.data-table th { background:#fafafa; padding:8px 10px; text-align:left; font-size:12px; color:#666; font-weight:500; border-bottom:2px solid #e8e8e8; white-space:nowrap; position:sticky; top:0; z-index:1; }
+.data-table td { padding:8px 10px; font-size:12px; color:#333; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
+.data-table tr:hover td { background:#f8fafc; }
+.tag { display:inline-block; padding:1px 6px; border-radius:3px; font-size:11px; }
+.tag-green { background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f; }
+.tag-gray { background:#f5f5f5; color:#999; border:1px solid #d9d9d9; }
+.tag-blue { background:#e6f7ff; color:#096dd9; border:1px solid #91d5ff; }
+.tag-orange { background:#fff7e6; color:#d46b08; border:1px solid #ffd591; }
+
+/* 分页 */
+.pagination { background:#fff; padding:10px 16px; border-top:1px solid #e8e8e8; display:flex; align-items:center; justify-content:flex-end; gap:6px; font-size:12px; color:#666; }
+.page-btn { padding:3px 8px; border:1px solid #d9d9d9; border-radius:3px; cursor:pointer; background:#fff; font-size:12px; }
+.page-btn.active { background:#4a90d9; color:#fff; border-color:#4a90d9; }
+.page-btn:hover:not(.active) { border-color:#4a90d9; color:#4a90d9; }
+
+/* 弹窗 */
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal { background:#fff; border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,0.15); display:flex; flex-direction:column; max-height:90vh; }
+.modal-sm { width:480px; }
+.modal-lg { width:720px; }
+.modal-header { padding:14px 20px; border-bottom:1px solid #e8e8e8; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.modal-header .title { font-size:15px; font-weight:600; }
+.modal-header .close { cursor:pointer; color:#999; font-size:18px; }
+.modal-body { padding:20px; overflow-y:auto; flex:1; }
+.modal-footer { padding:12px 20px; border-top:1px solid #e8e8e8; display:flex; justify-content:flex-end; gap:8px; flex-shrink:0; }
+
+/* 表单 */
+.form-row { display:flex; gap:16px; margin-bottom:14px; }
+.form-group { flex:1; }
+.form-group.full { flex:none; width:100%; }
+.form-group label { display:block; font-size:12px; color:#666; margin-bottom:4px; }
+.form-group label .required { color:#cf1322; }
+.form-group input, .form-group select, .form-group textarea {
+  width:100%; border:1px solid #d9d9d9; border-radius:3px; padding:6px 10px; font-size:12px;
+}
+.form-group textarea { height:70px; resize:vertical; }
+.form-group .hint { font-size:11px; color:#999; margin-top:3px; }
+
+/* 上传区 */
+.upload-area { border:1px dashed #d9d9d9; border-radius:3px; padding:16px; text-align:center; cursor:pointer; background:#fafafa; }
+.upload-area:hover { border-color:#4a90d9; }
+.upload-area .upload-icon { font-size:24px; color:#ccc; margin-bottom:4px; }
+.upload-area .upload-text { font-size:12px; color:#999; }
+.upload-preview { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.upload-thumb { width:60px; height:60px; border-radius:3px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:10px; color:#999; position:relative; border:1px solid #e8e8e8; }
+.upload-thumb .del { position:absolute; top:-6px; right:-6px; width:14px; height:14px; border-radius:50%; background:#ff4d4f; color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+/* 分隔线 */
+.divider { height:1px; background:#f0f0f0; margin:14px 0; }
+.section-title { font-size:13px; font-weight:600; color:#333; margin-bottom:10px; padding-left:8px; border-left:3px solid #4a90d9; }
+</style>
+</head>
+<body>
+</body>
+</html>
+
+<!-- 顶部导航 -->
+<div class="top-bar">
+  <span class="logo">X 销服系统</span>
+  <div class="tab-item">工作台</div>
+  <div class="tab-item">邀约管理</div>
+  <div class="tab-item active">⟳ 可视化资料配置 ×</div>
+  <div class="right">
+    <input class="search-box" placeholder="🔍 搜索" />
+    <span class="user">🔔 朱嫣然 ▾</span>
+  </div>
+</div>
+
+<!-- 主布局 -->
+<div class="layout">
+  <!-- 左侧导航 -->
+  <div class="sidebar">
+    <div class="nav-item"><span class="icon">📋</span>工作台</div>
+    <div class="nav-item"><span class="icon">📊</span>数智</div>
+    <div class="nav-item active"><span class="icon">🔧</span>服务</div>
+    <div class="nav-item"><span class="icon">🌐</span>网络</div>
+    <div class="nav-item"><span class="icon">⚙️</span>配件</div>
+    <div class="nav-item"><span class="icon">📑</span>审批</div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="content">
+
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+      <div class="search-row">
+        <div class="search-item">
+          <label>检测项名称</label>
+          <input type="text" placeholder="请输入检测项名称" style="min-width:160px;" />
+        </div>
+        <div class="search-item">
+          <label>保养项目</label>
+          <select>
+            <option value="">请选择保养项目</option>
+            <option>空调滤芯</option>
+            <option>制动液</option>
+            <option>轮胎</option>
+            <option>刹车片</option>
+            <option>电驱润滑油</option>
+            <option>蓄电池</option>
+          </select>
+        </div>
+        <div class="search-item">
+          <label>推荐服务项目</label>
+          <input type="text" placeholder="请输入推荐服务项目" style="min-width:160px;" />
+        </div>
+        <div class="search-item">
+          <label>工时编码</label>
+          <input type="text" placeholder="请输入工时编码" style="min-width:120px;" />
+        </div>
+        <div class="search-item">
+          <label>维修类别</label>
+          <select>
+            <option value="">全部</option>
+            <option value="30802">机电</option>
+            <option value="30801">钣金</option>
+            <option value="30803">喷漆</option>
+          </select>
+        </div>
+        <div class="search-item">
+          <label>状态</label>
+          <select>
+            <option value="">全部</option>
+            <option value="1">启用</option>
+            <option value="0">停用</option>
+          </select>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary" onclick="doSearch()">查询</button>
+          <button class="btn" onclick="resetSearch()">重置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <div class="left">
+        <button class="btn btn-primary" onclick="openAddModal()">+ 新增</button>
+        <button class="btn" onclick="openImportModal()">📥 批量导入</button>
+        <button class="btn" onclick="batchEnable()">批量启用</button>
+        <button class="btn" onclick="batchDisable()">批量停用</button>
+      </div>
+      <div class="right">
+        共 <strong id="totalCount">8</strong> 条
+        <button class="btn btn-sm" onclick="exportData()">导出</button>
+      </div>
+    </div>
+
+    <!-- 表格 -->
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:32px;"><input type="checkbox" id="checkAll" onclick="toggleAll()" /></th>
+            <th>序号</th>
+            <th>检测项名称</th>
+            <th>保养项目</th>
+            <th>推荐服务项目</th>
+            <th>工时编码</th>
+            <th>维修类别</th>
+            <th>检测点解释</th>
+            <th>危害说明</th>
+            <th>维修原理</th>
+            <th>状态</th>
+            <th>更新时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td><input type="checkbox" class="row-check" /></td>
+            <td>1</td>
+            <td>右前轮胎胎纹</td>
+            <td>轮胎</td>
+            <td>轮胎更换服务</td>
+            <td>TIRE-REPLACE-001</td>
+            <td><span class="tag tag-blue">机电</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td>2026-03-01 10:00</td>
+            <td>
+              <button class="btn-link" onclick="openEditModal(1)">编辑</button>
+              <button class="btn-link" onclick="previewItem(1)">预览</button>
+              <button class="btn-link danger" onclick="deleteItem(1)">删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="row-check" /></td>
+            <td>2</td>
+            <td>右前刹车片厚度</td>
+            <td>刹车片</td>
+            <td>刹车片更换服务</td>
+            <td>BRAKE-PAD-001</td>
+            <td><span class="tag tag-blue">机电</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td>2026-03-01 10:00</td>
+            <td>
+              <button class="btn-link" onclick="openEditModal(2)">编辑</button>
+              <button class="btn-link" onclick="previewItem(2)">预览</button>
+              <button class="btn-link danger" onclick="deleteItem(2)">删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="row-check" /></td>
+            <td>3</td>
+            <td>空调滤芯健康度</td>
+            <td>空调滤芯</td>
+            <td>空调滤芯更换服务</td>
+            <td>AC-FILTER-001</td>
+            <td><span class="tag tag-blue">机电</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-orange">未配置</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td>2026-03-02 14:30</td>
+            <td>
+              <button class="btn-link" onclick="openEditModal(3)">编辑</button>
+              <button class="btn-link" onclick="previewItem(3)">预览</button>
+              <button class="btn-link danger" onclick="deleteItem(3)">删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="row-check" /></td>
+            <td>4</td>
+            <td>制动液含水量</td>
+            <td>制动液</td>
+            <td>制动液更换服务</td>
+            <td>BRAKE-FLUID-001</td>
+            <td><span class="tag tag-blue">机电</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-green">已配置</span></td>
+            <td><span class="tag tag-orange">未配置</span></td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td>2026-03-02 15:00</td>
+            <td>
+              <button class="btn-link" onclick="openEditModal(4)">编辑</button>
+              <button class="btn-link" onclick="previewItem(4)">预览</button>
+              <button class="btn-link danger" onclick="deleteItem(4)">删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="row-check" /></td>
+            <td>5</td>
+            <td>电驱润滑油健康度</td>
+            <td>电驱润滑油</td>
+            <td>电驱润滑油更换服务</td>
+            <td>EDRIVE-OIL-001</td>
+            <td><span class="tag tag-blue">机电</span></td>
+            <td><span class="tag tag-orange">未配置</span></td>
+            <td><span class="tag tag-orange">未配置</span></td>
+            <td><span class="tag tag-orange">未配置</span></td>
+            <td><span class="tag tag-gray">停用</span></td>
+            <td>2026-03-03 09:00</td>
+            <td>
+              <button class="btn-link" onclick="openEditModal(5)">编辑</button>
+              <button class="btn-link" onclick="previewItem(5)">预览</button>
+              <button class="btn-link danger" onclick="deleteItem(5)">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination">
+      共 <strong>8</strong> 条
+      <button class="page-btn">‹</button>
+      <button class="page-btn active">1</button>
+      <button class="page-btn">2</button>
+      <button class="page-btn">›</button>
+      每页
+      <select style="border:1px solid #d9d9d9;border-radius:3px;padding:2px 4px;font-size:12px;">
+        <option>20条</option><option>50条</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 新增/编辑弹窗 ===== -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="title" id="editModalTitle">新增可视化资料</span>
+      <span class="close" onclick="closeModal('editModal')">✕</span>
+    </div>
+    <div class="modal-body">
+
+      <div class="section-title">基础信息</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label><span class="required">*</span> 检测项</label>
+          <select id="f_checkItem" onchange="onCheckItemChange()">
+            <option value="">请选择检测项</option>
+            <option value="tire">右前轮胎胎纹</option>
+            <option value="brake_pad">右前刹车片厚度</option>
+            <option value="ac_filter">空调滤芯健康度</option>
+            <option value="brake_fluid">制动液含水量</option>
+            <option value="edrive_oil">电驱润滑油健康度</option>
+            <option value="battery">蓄电池SOH</option>
+          </select>
+          <div class="hint">从保养作业标准中选择，系统自动关联保养项目编码</div>
+        </div>
+        <div class="form-group">
+          <label>保养项目（自动带出）</label>
+          <input type="text" id="f_maintainItem" placeholder="选择检测项后自动带出" readonly style="background:#f5f5f5;" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label><span class="required">*</span> 推荐服务项目</label>
+          <select id="f_wiName">
+            <option value="">请先选择检测项</option>
+          </select>
+          <div class="hint">根据检测项自动匹配，可选择对应工时</div>
+        </div>
+        <div class="form-group">
+          <label>工时编码（自动带出）</label>
+          <input type="text" id="f_wiCode" placeholder="选择推荐服务项目后自动带出" readonly style="background:#f5f5f5;" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>维修类别（自动带出）</label>
+          <input type="text" id="f_repairType" placeholder="自动带出" readonly style="background:#f5f5f5;" />
+        </div>
+        <div class="form-group">
+          <label><span class="required">*</span> 状态</label>
+          <select id="f_state">
+            <option value="1">启用</option>
+            <option value="0">停用</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">检测点解释</div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>文字说明</label>
+          <textarea id="f_checkDesc" placeholder="说明该检测项检测的是什么，标准值是多少"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>可视化资料（图片/动图）</label>
+          <div class="upload-area" onclick="triggerUpload('check_pic')">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">点击上传图片或动图（支持 jpg/png/gif，最大10MB）</div>
+          </div>
+          <div class="upload-preview" id="check_pic_preview">
+            <div class="upload-thumb">示意图1<div class="del" onclick="removeThumb(this)">×</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">危害说明</div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>不做的危害说明</label>
+          <textarea id="f_harmDesc" placeholder="说明客户不处理该项目可能带来的危害和风险"></textarea>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">维修原理</div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>文字说明</label>
+          <textarea id="f_repairDesc" placeholder="说明维修方案的原理"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>可视化资料（图片/动图）</label>
+          <div class="upload-area" onclick="triggerUpload('repair_pic')">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">点击上传图片或动图（支持 jpg/png/gif，最大10MB）</div>
+          </div>
+          <div class="upload-preview" id="repair_pic_preview"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">对客话术</div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>SA外呼邀约参考话术</label>
+          <textarea id="f_script" placeholder="SA在邀约外呼时可参考的话术内容"></textarea>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('editModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveItem()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 批量导入弹窗 ===== -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="title">批量导入</span>
+      <span class="close" onclick="closeModal('importModal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div style="background:#e6f7ff;border:1px solid #91d5ff;border-radius:3px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#096dd9;">
+        ℹ️ 请先下载导入模板，按模板格式填写后上传。检测项名称需与系统保养作业标准一致，工时编码由系统自动匹配。
+      </div>
+      <div style="margin-bottom:14px;">
+        <button class="btn" onclick="downloadTemplate()">📥 下载导入模板</button>
+      </div>
+      <div class="form-group">
+        <label><span class="required">*</span> 上传文件</label>
+        <div class="upload-area" style="padding:24px;">
+          <div class="upload-icon">📁</div>
+          <div class="upload-text">点击选择文件或拖拽到此处（支持 .xlsx，最大5MB）</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#999;margin-top:8px;">
+        注意：导入时系统会自动校验检测项名称是否存在，不存在的行将跳过并在结果中提示。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('importModal')">取消</button>
+      <button class="btn btn-primary" onclick="doImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 删除确认弹窗 ===== -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal modal-sm" style="width:380px;">
+    <div class="modal-header">
+      <span class="title">确认删除</span>
+      <span class="close" onclick="closeModal('deleteModal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:#333;padding:8px 0;">确认删除该条可视化资料配置？删除后不可恢复。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('deleteModal')">取消</button>
+      <button class="btn" style="background:#ff4d4f;color:#fff;border-color:#ff4d4f;" onclick="confirmDelete()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 检测项 → 保养项目 + 推荐工时 映射（模拟系统数据）
+var checkItemMap = {
+  tire: { maintainItem:'轮胎', wiOptions:[{code:'TIRE-REPLACE-001',name:'轮胎更换服务'}], repairType:'机电' },
+  brake_pad: { maintainItem:'刹车片', wiOptions:[{code:'BRAKE-PAD-001',name:'刹车片更换服务'}], repairType:'机电' },
+  ac_filter: { maintainItem:'空调滤芯', wiOptions:[{code:'AC-FILTER-001',name:'空调滤芯更换服务'}], repairType:'机电' },
+  brake_fluid: { maintainItem:'制动液', wiOptions:[{code:'BRAKE-FLUID-001',name:'制动液更换服务'}], repairType:'机电' },
+  edrive_oil: { maintainItem:'电驱润滑油', wiOptions:[{code:'EDRIVE-OIL-001',name:'电驱润滑油更换服务'}], repairType:'机电' },
+  battery: { maintainItem:'蓄电池', wiOptions:[{code:'BATTERY-001',name:'蓄电池更换服务'}], repairType:'机电' },
+};
+
+function onCheckItemChange() {
+  var val = document.getElementById('f_checkItem').value;
+  var wiSel = document.getElementById('f_wiName');
+  var wiCode = document.getElementById('f_wiCode');
+  var repairType = document.getElementById('f_repairType');
+  var maintainItem = document.getElementById('f_maintainItem');
+  wiSel.innerHTML = '<option value="">请选择</option>';
+  wiCode.value = '';
+  repairType.value = '';
+  maintainItem.value = '';
+  if (!val || !checkItemMap[val]) return;
+  var data = checkItemMap[val];
+  maintainItem.value = data.maintainItem;
+  repairType.value = data.repairType;
+  data.wiOptions.forEach(function(opt) {
+    var o = document.createElement('option');
+    o.value = opt.code;
+    o.textContent = opt.name + '（' + opt.code + '）';
+    wiSel.appendChild(o);
+  });
+  if (data.wiOptions.length === 1) {
+    wiSel.value = data.wiOptions[0].code;
+    wiCode.value = data.wiOptions[0].code;
+  }
+}
+
+document.getElementById('f_wiName') && document.getElementById('f_wiName').addEventListener('change', function() {
+  document.getElementById('f_wiCode').value = this.value;
+});
+
+function openAddModal() {
+  document.getElementById('editModalTitle').textContent = '新增可视化资料';
+  document.getElementById('f_checkItem').value = '';
+  document.getElementById('f_maintainItem').value = '';
+  document.getElementById('f_wiName').innerHTML = '<option value="">请先选择检测项</option>';
+  document.getElementById('f_wiCode').value = '';
+  document.getElementById('f_repairType').value = '';
+  document.getElementById('f_state').value = '1';
+  document.getElementById('f_checkDesc').value = '';
+  document.getElementById('f_harmDesc').value = '';
+  document.getElementById('f_repairDesc').value = '';
+  document.getElementById('f_script').value = '';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function openEditModal(id) {
+  document.getElementById('editModalTitle').textContent = '编辑可视化资料';
+  // 模拟填充数据
+  document.getElementById('f_checkItem').value = 'tire';
+  onCheckItemChange();
+  document.getElementById('f_checkDesc').value = '轮胎胎纹深度是衡量轮胎抓地力的关键指标，标准值≥3mm。';
+  document.getElementById('f_harmDesc').value = '胎纹不足会导致湿滑路面排水能力下降，制动距离增大50%以上。';
+  document.getElementById('f_repairDesc').value = '更换新轮胎后需进行四轮定位校准，确保轮胎均匀磨损。';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function saveItem() { closeModal('editModal'); alert('保存成功'); }
+function deleteItem(id) { document.getElementById('deleteModal').classList.add('show'); }
+function confirmDelete() { closeModal('deleteModal'); alert('删除成功'); }
+function openImportModal() { document.getElementById('importModal').classList.add('show'); }
+function doImport() { closeModal('importModal'); alert('导入成功，共导入5条'); }
+function downloadTemplate() { alert('模板下载中...'); }
+function previewItem(id) { alert('预览功能：跳转到可视化资料详情页'); }
+function doSearch() { alert('查询中...'); }
+function resetSearch() {}
+function exportData() { alert('导出中...'); }
+function batchEnable() { alert('批量启用成功'); }
+function batchDisable() { alert('批量停用成功'); }
+function toggleAll() {
+  var all = document.getElementById('checkAll').checked;
+  document.querySelectorAll('.row-check').forEach(function(c) { c.checked = all; });
+}
+function triggerUpload(type) { alert('上传文件：' + type); }
+function removeThumb(el) { el.parentElement.remove(); }
+
+// 监听wiName变化
+document.addEventListener('DOMContentLoaded', function() {
+  var wiSel = document.getElementById('f_wiName');
+  if (wiSel) wiSel.addEventListener('change', function() {
+    document.getElementById('f_wiCode').value = this.value;
+  });
+});
+</script>

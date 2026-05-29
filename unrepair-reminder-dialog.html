@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>未修项提醒弹窗 - 施工单开单场景</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; font-size:13px; color:#333; background:#e8e8e8; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+
+/* 遮罩 */
+.overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:100; display:flex; align-items:center; justify-content:center; }
+
+/* 弹窗 */
+.dialog { background:#fff; border-radius:6px; width:620px; box-shadow:0 4px 20px rgba(0,0,0,0.15); }
+.dialog-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid #f0f0f0; }
+.dialog-header .title { font-size:15px; font-weight:600; }
+.dialog-header .close { font-size:18px; color:#999; cursor:pointer; }
+.dialog-header .close:hover { color:#333; }
+
+/* 表格 */
+.dialog-table { width:100%; border-collapse:collapse; }
+.dialog-table th { background:#fafafa; padding:10px 20px; text-align:left; font-size:13px; color:#666; font-weight:500; border-bottom:1px solid #f0f0f0; }
+.dialog-table td { padding:12px 20px; font-size:13px; color:#333; border-bottom:1px solid #f5f5f5; vertical-align:middle; }
+.dialog-table tr:last-child td { border-bottom:none; }
+
+/* 蓝色链接 */
+.link-blue { color:#1890ff; cursor:pointer; text-decoration:none; }
+.link-blue:hover { text-decoration:underline; }
+
+/* 底部按钮 */
+.dialog-footer { padding:12px 20px; display:flex; justify-content:flex-end; border-top:1px solid #f0f0f0; }
+.btn { padding:6px 16px; border-radius:4px; font-size:13px; cursor:pointer; border:1px solid #d9d9d9; background:#fff; color:#333; }
+.btn:hover { border-color:#1890ff; color:#1890ff; }
+
+/* ===== 反馈原因弹窗 ===== */
+.feedback-dialog { background:#fff; border-radius:6px; width:500px; box-shadow:0 4px 20px rgba(0,0,0,0.15); }
+.feedback-body { padding:20px; }
+.feedback-body .form-group { margin-bottom:14px; }
+.feedback-body .form-group label { display:block; font-size:13px; color:#333; margin-bottom:6px; font-weight:500; }
+.feedback-body .form-group label .required { color:#ff4d4f; }
+.feedback-body select { width:100%; border:1px solid #d9d9d9; border-radius:4px; padding:6px 10px; font-size:13px; }
+.feedback-body textarea { width:100%; border:1px solid #d9d9d9; border-radius:4px; padding:8px 10px; font-size:13px; height:80px; resize:vertical; }
+.feedback-footer { padding:12px 20px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #f0f0f0; }
+.btn-primary { background:#1890ff; color:#fff; border-color:#1890ff; }
+.btn-primary:hover { background:#40a9ff; }
+
+/* 未修项列表 */
+.unrepair-list { margin:8px 0; }
+.unrepair-item { display:flex; align-items:center; gap:8px; padding:4px 0; }
+.unrepair-dot { width:6px; height:6px; border-radius:50%; background:#ff4d4f; flex-shrink:0; }
+.unrepair-name { font-size:13px; color:#333; }
+.unrepair-tag { font-size:10px; padding:1px 5px; border-radius:3px; }
+.unrepair-tag.red { background:#fff1f0; color:#ff4d4f; }
+.unrepair-tag.orange { background:#fff7e6; color:#d46b08; }
+.unrepair-tag.blue { background:#e6f7ff; color:#1890ff; }
+</style>
+</head>
+<body>
+
+<!-- ===== 场景一：施工单开单 - 主弹窗 ===== -->
+<div class="overlay" id="mainDialog">
+  <div class="dialog">
+    <div class="dialog-header">
+      <span class="title">提示</span>
+      <span class="close" onclick="document.getElementById('mainDialog').style.display='none'">✕</span>
+    </div>
+    <table class="dialog-table">
+      <thead>
+        <tr><th style="width:65%;">提醒内容</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>该车辆存在市场处置活动或车辆应对活动</td>
+          <td><a class="link-blue">查看活动</a></td>
+        </tr>
+        <tr>
+          <td>
+            该车辆存在 <span style="font-weight:600;">5</span> 项待做服务项目，需与客户沟通相关事宜
+            <div style="margin-top:4px;font-size:12px;color:#999;">
+              关联报告：<a class="link-blue" onclick="openReport()">车辆检查报告 RPT-20260104-001</a>
+            </div>
+          </td>
+          <td>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <a class="link-blue" onclick="openReport()">查看报告</a>
+              <a class="link-blue" onclick="openFeedback()">反馈原因</a>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="dialog-footer">
+      <button class="btn" onclick="document.getElementById('mainDialog').style.display='none'">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 查看报告弹窗 ===== -->
+<div class="overlay" id="reportDialog" style="display:none;">
+  <div class="dialog" style="width:560px;">
+    <div class="dialog-header">
+      <span class="title">车辆检查报告 RPT-20260104-001</span>
+      <span class="close" onclick="document.getElementById('reportDialog').style.display='none'">✕</span>
+    </div>
+    <div style="padding:20px;">
+      <div style="font-size:13px;color:#666;margin-bottom:12px;">川A RAA6 · 广州龙御行服务中心 · 2026/01/04</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">建议处理（5项）</div>
+      <div class="unrepair-list">
+        <div class="unrepair-item"><div class="unrepair-dot"></div><span class="unrepair-name">右前轮胎更换</span><span class="unrepair-tag red">检测异常</span></div>
+        <div class="unrepair-item"><div class="unrepair-dot"></div><span class="unrepair-name">右前刹车片更换</span><span class="unrepair-tag red">检测异常</span></div>
+        <div class="unrepair-item"><div class="unrepair-dot"></div><span class="unrepair-name">空调滤芯更换</span><span class="unrepair-tag orange">已过期</span></div>
+        <div class="unrepair-item"><div class="unrepair-dot"></div><span class="unrepair-name">电驱润滑油更换</span><span class="unrepair-tag orange">即将到期</span></div>
+        <div class="unrepair-item"><div class="unrepair-dot"></div><span class="unrepair-name">制动液更换</span><span class="unrepair-tag blue">上次未修</span></div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" onclick="document.getElementById('reportDialog').style.display='none'">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 反馈原因弹窗 ===== -->
+<div class="overlay" id="feedbackDialog" style="display:none;">
+  <div class="feedback-dialog">
+    <div class="dialog-header">
+      <span class="title">未修项反馈原因</span>
+      <span class="close" onclick="document.getElementById('feedbackDialog').style.display='none'">✕</span>
+    </div>
+    <div class="feedback-body">
+      <div style="font-size:12px;color:#999;margin-bottom:14px;">
+        关联报告：<a class="link-blue">RPT-20260104-001</a> · 共 5 项待做服务项目
+      </div>
+
+      <div class="form-group">
+        <label><span class="required">*</span> 反馈原因</label>
+        <select>
+          <option value="">请选择反馈原因</option>
+          <option>客户认为暂不需要</option>
+          <option>客户预算不足</option>
+          <option>客户计划下次处理</option>
+          <option>客户已在外部处理</option>
+          <option>其他</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>备注说明</label>
+        <textarea placeholder="请输入备注（选填）"></textarea>
+      </div>
+    </div>
+    <div class="feedback-footer">
+      <button class="btn" onclick="document.getElementById('feedbackDialog').style.display='none'">取消</button>
+      <button class="btn btn-primary" onclick="submitFeedback()">提交</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openReport() {
+  document.getElementById('reportDialog').style.display = 'flex';
+}
+
+function openFeedback() {
+  document.getElementById('feedbackDialog').style.display = 'flex';
+}
+
+function submitFeedback() {
+  document.getElementById('feedbackDialog').style.display = 'none';
+  document.getElementById('mainDialog').style.display = 'none';
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Inquiry - 审批流程图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;font-size:13px;color:#333;background:#f0f2f5;padding:24px;}
+h1{font-size:18px;color:#1a1a2e;margin-bottom:4px;}
+.subtitle{font-size:12px;color:#999;margin-bottom:20px;}
+.flow-container{background:#fff;border-radius:8px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,.06);overflow-x:auto;}
+svg{display:block;margin:0 auto;}
+
+/* Legend */
+.legend{display:flex;gap:24px;margin-top:20px;padding:16px;background:#fafbfc;border-radius:6px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#666;}
+.legend-color{width:14px;height:14px;border-radius:3px;}
+
+/* Info table */
+.info-section{margin-top:24px;background:#fff;border-radius:8px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.info-section h2{font-size:15px;color:#1a1a2e;margin-bottom:12px;padding-left:10px;border-left:3px solid #4a90d9;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+th{background:#f5f7fa;padding:8px 12px;text-align:left;color:#666;font-weight:500;border-bottom:2px solid #e4e7ed;}
+td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+tr:hover td{background:#f8fafc;}
+.role-dealer{color:#e67e22;font-weight:500;}
+.role-nsc{color:#3498db;font-weight:500;}
+.role-hq{color:#9b59b6;font-weight:500;}
+.status-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500;white-space:nowrap;}
+.st-pending{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;}
+.st-replied{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff;}
+.st-apply{background:#f9f0ff;color:#722ed1;border:1px solid #d3adf7;}
+.st-closed{background:#f5f5f5;color:#8c8c8c;border:1px solid #d9d9d9;}
+.st-draft{background:#f5f5f5;color:#bbb;border:1px solid #e8e8e8;}
+code{background:#f0f2f5;padding:1px 4px;border-radius:2px;font-size:11px;color:#e74c3c;}
+</style>
+</head>
+<body>
+
+<h1>Technical Inquiry (TI) — 审批流程图</h1>
+<div class="subtitle">基于 xp-ass-service-eu 代码库分析 · statusMapping.ts / index.vue / index.ts</div>
+
+<div class="flow-container">
+<svg width="1050" height="720" viewBox="0 0 1050 720">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#666"/></marker>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#3498db"/></marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#9b59b6"/></marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#27ae60"/></marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#e67e22"/></marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#e74c3c"/></marker>
+  </defs>
+
+  <!-- Background lanes -->
+  <rect x="0" y="50" width="1050" height="110" fill="#fef9f0" rx="0" opacity="0.5"/>
+  <rect x="0" y="160" width="1050" height="200" fill="#f0f6ff" rx="0" opacity="0.5"/>
+  <rect x="0" y="360" width="1050" height="140" fill="#f5f0ff" rx="0" opacity="0.5"/>
+  <rect x="0" y="500" width="1050" height="220" fill="#f0f0f0" rx="0" opacity="0.3"/>
+
+  <!-- Lane labels -->
+  <text x="12" y="110" font-size="11" fill="#e67e22" font-weight="600">Dealer（门店）</text>
+  <text x="12" y="220" font-size="11" fill="#3498db" font-weight="600">NSC（总代）</text>
+  <text x="12" y="430" font-size="11" fill="#9b59b6" font-weight="600">Region/HQ（总部）</text>
+  <text x="12" y="560" font-size="11" fill="#888" font-weight="600">关闭流程</text>
+
+  <!-- ===== NODES ===== -->
+
+  <!-- DRAFT -->
+  <rect x="130" y="80" width="120" height="40" rx="6" fill="#f5f5f5" stroke="#d9d9d9" stroke-width="1.5"/>
+  <text x="190" y="104" text-anchor="middle" font-size="11" fill="#999" font-weight="500">DRAFT</text>
+
+  <!-- PENDING_NSC -->
+  <rect x="350" y="190" width="150" height="44" rx="6" fill="#fff7e6" stroke="#ffa940" stroke-width="1.5"/>
+  <text x="425" y="210" text-anchor="middle" font-size="11" fill="#d46b08" font-weight="600">PENDING_NSC</text>
+  <text x="425" y="224" text-anchor="middle" font-size="9" fill="#d46b08">等待总代处理</text>
+
+  <!-- REPLIED_NSC -->
+  <rect x="600" y="190" width="150" height="44" rx="6" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+  <text x="675" y="210" text-anchor="middle" font-size="11" fill="#1890ff" font-weight="600">REPLIED_NSC</text>
+  <text x="675" y="224" text-anchor="middle" font-size="9" fill="#1890ff">总代已回复</text>
+
+  <!-- PENDING_XPENG -->
+  <rect x="350" y="390" width="160" height="44" rx="6" fill="#f9f0ff" stroke="#722ed1" stroke-width="1.5"/>
+  <text x="430" y="410" text-anchor="middle" font-size="11" fill="#722ed1" font-weight="600">PENDING_XPENG</text>
+  <text x="430" y="424" text-anchor="middle" font-size="9" fill="#722ed1">等待总部处理</text>
+
+  <!-- REPLIED_XPENG -->
+  <rect x="600" y="280" width="160" height="44" rx="6" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+  <text x="680" y="300" text-anchor="middle" font-size="11" fill="#1890ff" font-weight="600">REPLIED_XPENG</text>
+  <text x="680" y="314" text-anchor="middle" font-size="9" fill="#1890ff">总部已回复</text>
+
+  <!-- APPLY_FOR_PRE_CLOSURE -->
+  <rect x="130" y="530" width="190" height="44" rx="6" fill="#f9f0ff" stroke="#b37feb" stroke-width="1.5"/>
+  <text x="225" y="550" text-anchor="middle" font-size="10" fill="#722ed1" font-weight="600">APPLY_FOR_PRE_CLOSURE</text>
+  <text x="225" y="564" text-anchor="middle" font-size="9" fill="#722ed1">申请预关闭</text>
+
+  <!-- PRE_CLOSED -->
+  <rect x="130" y="610" width="190" height="44" rx="6" fill="#f5f5f5" stroke="#8c8c8c" stroke-width="1.5"/>
+  <text x="225" y="630" text-anchor="middle" font-size="11" fill="#8c8c8c" font-weight="600">PRE_CLOSED</text>
+  <text x="225" y="644" text-anchor="middle" font-size="9" fill="#8c8c8c">已预关闭</text>
+
+  <!-- APPLY_FOR_CLOSING -->
+  <rect x="430" y="530" width="190" height="44" rx="6" fill="#f9f0ff" stroke="#b37feb" stroke-width="1.5"/>
+  <text x="525" y="550" text-anchor="middle" font-size="10" fill="#722ed1" font-weight="600">APPLY_FOR_CLOSING</text>
+  <text x="525" y="564" text-anchor="middle" font-size="9" fill="#722ed1">申请关闭</text>
+
+  <!-- CLOSED -->
+  <rect x="430" y="610" width="190" height="44" rx="6" fill="#d9d9d9" stroke="#8c8c8c" stroke-width="2"/>
+  <text x="525" y="636" text-anchor="middle" font-size="12" fill="#595959" font-weight="700">CLOSED</text>
+
+  <!-- CANCELLED -->
+  <rect x="880" y="80" width="120" height="40" rx="6" fill="#fff1f0" stroke="#ff4d4f" stroke-width="1.5"/>
+  <text x="940" y="104" text-anchor="middle" font-size="11" fill="#ff4d4f" font-weight="500">CANCELLED</text>
+
+  <!-- ===== ARROWS ===== -->
+
+  <!-- Dealer 提交 → PENDING_NSC -->
+  <line x1="250" y1="100" x2="348" y2="200" stroke="#e67e22" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+  <text x="280" y="142" font-size="9" fill="#e67e22" transform="rotate(30,280,142)">Dealer 提交</text>
+
+  <!-- NSC 提交 → PENDING_XPENG (直接) -->
+  <path d="M250,100 Q250,412 348,412" fill="none" stroke="#3498db" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-blue)"/>
+  <text x="260" y="300" font-size="9" fill="#3498db">NSC 自己提单</text>
+  <text x="260" y="312" font-size="9" fill="#3498db">(跳过 NSC 层)</text>
+
+  <!-- PENDING_NSC → REPLIED_NSC (NSC Reply) -->
+  <line x1="500" y1="212" x2="598" y2="212" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <text x="540" y="204" font-size="9" fill="#3498db" text-anchor="middle">NSC 回复</text>
+  <text x="540" y="192" font-size="8" fill="#999" text-anchor="middle">dtrReply</text>
+
+  <!-- PENDING_NSC → PENDING_XPENG (Consult Region) -->
+  <line x1="425" y1="234" x2="425" y2="388" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <text x="432" y="320" font-size="9" fill="#3498db">Consult Region</text>
+  <text x="432" y="332" font-size="8" fill="#999">sendToHQ</text>
+
+  <!-- PENDING_XPENG → REPLIED_XPENG (HQ Reply) -->
+  <path d="M510,400 L598,302" fill="none" stroke="#9b59b6" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <text x="570" y="360" font-size="9" fill="#9b59b6">HQ 回复</text>
+  <text x="570" y="372" font-size="8" fill="#999">dtrReply</text>
+
+  <!-- REPLIED_XPENG → PENDING_NSC (回到 NSC) - 通过 NSC 再次回复 -->
+  <path d="M600,302 Q500,270 500,212" fill="none" stroke="#3498db" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-blue)"/>
+  <text x="530" y="262" font-size="9" fill="#3498db">NSC 回复</text>
+
+  <!-- REPLIED_XPENG → PENDING_XPENG (NSC Consult Region again) -->
+  <path d="M680,324 Q680,412 512,412" fill="none" stroke="#3498db" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-blue)"/>
+  <text x="690" y="380" font-size="9" fill="#3498db">再次 Consult Region</text>
+
+  <!-- Apply for pre closure (from multiple states) -->
+  <path d="M350,234 Q200,400 220,528" fill="none" stroke="#666" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <path d="M600,234 Q400,450 240,528" fill="none" stroke="#666" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <text x="160" y="490" font-size="9" fill="#666">Apply for pre closure</text>
+  <text x="160" y="502" font-size="8" fill="#999">dtrPreCloseApply</text>
+
+  <!-- Apply for closing (from multiple states) -->
+  <path d="M500,234 Q520,450 525,528" fill="none" stroke="#666" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <path d="M750,234 Q700,450 540,528" fill="none" stroke="#666" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <text x="560" y="490" font-size="9" fill="#666">Apply for closing</text>
+  <text x="560" y="502" font-size="8" fill="#999">dtrCloseApply</text>
+
+  <!-- APPLY_FOR_PRE_CLOSURE → PRE_CLOSED -->
+  <line x1="225" y1="574" x2="225" y2="608" stroke="#8c8c8c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="232" y="596" font-size="8" fill="#8c8c8c">dtrPreClose</text>
+
+  <!-- APPLY_FOR_CLOSING → CLOSED -->
+  <line x1="525" y1="574" x2="525" y2="608" stroke="#8c8c8c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="532" y="596" font-size="8" fill="#8c8c8c">dtrClose</text>
+
+  <!-- PRE_CLOSED → Activate (back to previous) -->
+  <path d="M320,632 Q800,700 850,412 Q850,200 760,212" fill="none" stroke="#27ae60" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arrow-green)"/>
+  <text x="860" y="500" font-size="9" fill="#27ae60">Activate</text>
+  <text x="860" y="512" font-size="8" fill="#999">激活/重新打开</text>
+
+  <!-- CLOSED → Activate -->
+  <path d="M620,640 Q860,680 870,412 Q870,200 760,220" fill="none" stroke="#27ae60" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arrow-green)"/>
+
+  <!-- DRAFT → CANCELLED -->
+  <line x1="250" y1="95" x2="878" y2="95" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-red)"/>
+  <text x="560" y="88" font-size="9" fill="#ff4d4f" text-anchor="middle">作废 (DRAFT only)</text>
+
+  <!-- Condition labels in boxes -->
+  <rect x="790" y="180" width="200" height="80" rx="4" fill="#fffbe6" stroke="#ffe58f" stroke-width="1" opacity="0.9"/>
+  <text x="800" y="196" font-size="9" fill="#ad6800" font-weight="600">可触发 Apply 的状态：</text>
+  <text x="800" y="210" font-size="9" fill="#ad6800">• PENDING_NSC</text>
+  <text x="800" y="224" font-size="9" fill="#ad6800">• REPLIED_NSC</text>
+  <text x="800" y="238" font-size="9" fill="#ad6800">• PENDING_XPENG</text>
+  <text x="800" y="252" font-size="9" fill="#ad6800">• REPLIED_XPENG</text>
+
+</svg>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-color" style="background:#e67e22;"></div> Dealer（门店）操作</div>
+  <div class="legend-item"><div class="legend-color" style="background:#3498db;"></div> NSC（总代）操作</div>
+  <div class="legend-item"><div class="legend-color" style="background:#9b59b6;"></div> Region/HQ（总部）操作</div>
+  <div class="legend-item"><div class="legend-color" style="background:#27ae60;"></div> Activate（激活/重新打开）</div>
+  <div class="legend-item"><div class="legend-color" style="background:#8c8c8c;"></div> 关闭流程</div>
+  <div class="legend-item"><div class="legend-color" style="background:#ff4d4f;"></div> 作废</div>
+  <div class="legend-item"><svg width="30" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#666" stroke-width="1.5" stroke-dasharray="4,3"/></svg> 虚线 = 条件分支 / 可选路径</div>
+</div>
+
+<!-- Status transition detail table -->
+<div class="info-section">
+  <h2>状态流转明细（基于代码）</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px;">序号</th>
+        <th style="width:180px;">操作</th>
+        <th style="width:120px;">操作人</th>
+        <th style="width:180px;">前置状态</th>
+        <th style="width:180px;">目标状态</th>
+        <th style="width:200px;">权限 / 条件</th>
+        <th>API</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Dealer 提交</td>
+        <td class="role-dealer">Dealer（门店）</td>
+        <td><span class="status-tag st-draft">DRAFT</span></td>
+        <td><span class="status-tag st-pending">PENDING_NSC</span></td>
+        <td><code>ass_technical_inquairy_edit</code></td>
+        <td>qtySaveBtn('submit')</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>NSC 自己提单</td>
+        <td class="role-nsc">NSC（总代）</td>
+        <td><span class="status-tag st-draft">DRAFT</span></td>
+        <td><span class="status-tag st-apply">PENDING_XPENG</span></td>
+        <td><code>ass_technical_inquairy_edit</code><br>跳过 NSC 层级</td>
+        <td>qtySaveBtn('submit')</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>NSC 回复</td>
+        <td class="role-nsc">NSC（总代）</td>
+        <td><span class="status-tag st-pending">PENDING_NSC</span> 或 <span class="status-tag st-replied">REPLIED_XPENG</span></td>
+        <td><span class="status-tag st-replied">REPLIED_NSC</span></td>
+        <td><code>ass_technical_inquairy_reply_importer_review</code><br>from=reply</td>
+        <td>dtrReply</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>NSC 升级到总部<br>(Consult Region)</td>
+        <td class="role-nsc">NSC（总代）</td>
+        <td><span class="status-tag st-pending">PENDING_NSC</span> 或 <span class="status-tag st-replied">REPLIED_XPENG</span></td>
+        <td><span class="status-tag st-apply">PENDING_XPENG</span></td>
+        <td><code>ass_technical_inquairy_reply_importer_review</code><br>from=reply</td>
+        <td>sendToHQEu (areaSubmit)</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>HQ 回复</td>
+        <td class="role-hq">Region/HQ（总部）</td>
+        <td><span class="status-tag st-apply">PENDING_XPENG</span></td>
+        <td><span class="status-tag st-replied">REPLIED_XPENG</span></td>
+        <td><code>ass_technical_inquairy_reply_hq_review</code><br>from=reply</td>
+        <td>dtrReply</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>申请预关闭</td>
+        <td class="role-nsc">NSC / <span class="role-hq">HQ</span></td>
+        <td><span class="status-tag st-pending">PENDING_NSC</span> / <span class="status-tag st-replied">REPLIED_NSC</span> / <span class="status-tag st-apply">PENDING_XPENG</span> / <span class="status-tag st-replied">REPLIED_XPENG</span></td>
+        <td><span class="status-tag st-apply">APPLY_FOR_PRE_CLOSURE</span></td>
+        <td>from=reply</td>
+        <td>dtrPreCloseApply</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>执行预关闭</td>
+        <td>提单方角色</td>
+        <td><span class="status-tag st-apply">APPLY_FOR_PRE_CLOSURE</span></td>
+        <td><span class="status-tag st-closed">PRE_CLOSED</span></td>
+        <td><code>operateRoleType === submitterRoleType</code><br>from≠reply（提单页）</td>
+        <td>dtrPreClose</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>申请关闭</td>
+        <td class="role-nsc">NSC / <span class="role-hq">HQ</span></td>
+        <td><span class="status-tag st-pending">PENDING_NSC</span> / <span class="status-tag st-replied">REPLIED_NSC</span> / <span class="status-tag st-apply">PENDING_XPENG</span> / <span class="status-tag st-replied">REPLIED_XPENG</span></td>
+        <td><span class="status-tag st-apply">APPLY_FOR_CLOSING</span></td>
+        <td>from=reply</td>
+        <td>dtrCloseApply</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>执行关闭</td>
+        <td>提单方角色</td>
+        <td>非 DRAFT / CANCELLED / CLOSED</td>
+        <td><span class="status-tag st-closed">CLOSED</span></td>
+        <td><code>operateRoleType === submitterRoleType</code><br>from≠reply（提单页）</td>
+        <td>dtrClose</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>激活（重新打开）</td>
+        <td>有权限者</td>
+        <td><span class="status-tag st-closed">PRE_CLOSED</span> 或 <span class="status-tag st-closed">CLOSED</span></td>
+        <td>恢复到之前状态</td>
+        <td><code>ass_technical_inquairy_activation</code><br>列表页操作</td>
+        <td>activateSeBuDtrXp</td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td>作废</td>
+        <td class="role-dealer">Dealer / <span class="role-nsc">NSC</span></td>
+        <td><span class="status-tag st-draft">DRAFT</span></td>
+        <td><span class="status-tag" style="background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e;">CANCELLED</span></td>
+        <td><code>ass_technical_inquairy_edit</code><br>from≠reply</td>
+        <td>invalidQualityInformation</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="info-section" style="margin-top:16px;">
+  <h2>角色与权限对照</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:150px;">角色</th>
+        <th style="width:200px;">代码标识</th>
+        <th style="width:250px;">关键权限码</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="role-dealer">Dealer（门店）</td>
+        <td><code>isShop = 'shop'</code><br>submitterRoleType = SHOP</td>
+        <td><code>ass_technical_inquairy_edit</code></td>
+        <td>提单、编辑、保存草稿、提交、执行预关闭/关闭（当提单方为 Dealer 时）</td>
+      </tr>
+      <tr>
+        <td class="role-nsc">NSC（总代）</td>
+        <td><code>isShop = 'area'</code><br>submitterRoleType = NSC</td>
+        <td><code>ass_technical_inquairy_reply_importer_review</code></td>
+        <td>回复（Reply）、升级到总部（Consult Region）、申请预关闭/关闭、自己提单</td>
+      </tr>
+      <tr>
+        <td class="role-hq">Region/HQ（总部）</td>
+        <td><code>isShop = 'headquarter'</code><br>submitterRoleType = HOST</td>
+        <td><code>ass_technical_inquairy_reply_hq_review</code></td>
+        <td>回复（Reply）、申请预关闭/关闭</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="info-section" style="margin-top:16px;">
+  <h2>关键代码文件索引</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:200px;">文件</th>
+        <th>路径</th>
+        <th style="width:300px;">说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>statusMapping.ts</td>
+        <td><code>app/web/page/eu/ass_technical_inquairy/statusMapping.ts</code></td>
+        <td>APPROVAL_STATUS 枚举定义</td>
+      </tr>
+      <tr>
+        <td>authCode.ts</td>
+        <td><code>app/web/page/eu/ass_technical_inquairy/authCode.ts</code></td>
+        <td>权限码定义</td>
+      </tr>
+      <tr>
+        <td>index.vue（详情页模板）</td>
+        <td><code>app/web/page/eu/ass_technical_inquairy/ass_quality_information_detail/index.vue</code></td>
+        <td>按钮 v-if 条件、页面布局</td>
+      </tr>
+      <tr>
+        <td>index.ts（详情页逻辑）</td>
+        <td><code>app/web/page/eu/ass_technical_inquairy/ass_quality_information_detail/index.ts</code></td>
+        <td>dtrReplyBtn、sendToHQBtn、preCloseBtn、dtrCloseBtn、applyForPreClosure、applyForClosing 等方法</td>
+      </tr>
+      <tr>
+        <td>API 定义</td>
+        <td><code>app/lib/ajax/ass_repair_service/ass_quality_information_registration.js</code></td>
+        <td>dtrReply、submitContent、dtrPreClose、dtrClose、dtrPreCloseApply、dtrCloseApply、activateSeBuDtrXp</td>
+      </tr>
+      <tr>
+        <td>列表页</td>
+        <td><code>app/web/page/eu/ass_technical_inquairy/ass_quality_information_registration/index.ts</code></td>
+        <td>Activate 操作（列表页操作栏）</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

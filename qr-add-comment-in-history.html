@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality Report - Add Comment in Operator History</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;font-size:13px;color:#333;background:#f5f7fa;}
+.top-bar{height:48px;background:#fff;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #e8e8e8;position:fixed;top:0;left:0;right:0;z-index:100;}
+.top-bar .logo{display:flex;align-items:center;gap:8px;margin-right:24px;}
+.top-bar .logo-text{font-size:14px;font-weight:600;color:#333;}
+.top-bar .right-area{display:flex;align-items:center;gap:16px;margin-left:auto;}
+.top-bar .badge{background:#ff4d4f;color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;position:relative;top:-6px;left:-4px;}
+.top-bar .avatar{width:28px;height:28px;border-radius:50%;background:#ff7a45;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.top-bar .role-tag{font-size:11px;color:#4a90d9;background:#e6f0ff;padding:1px 6px;border-radius:3px;}
+.page-wrap{display:flex;margin-top:48px;min-height:calc(100vh - 48px);}
+.anchor-nav{width:160px;position:fixed;top:48px;left:0;bottom:0;background:#fff;border-right:1px solid #e8e8e8;padding:16px 0;overflow-y:auto;z-index:50;}
+.anchor-nav a{display:block;padding:8px 16px;font-size:12px;color:#666;text-decoration:none;border-left:3px solid transparent;transition:all .15s;line-height:1.5;}
+.anchor-nav a:hover{color:#4a90d9;background:#f5f9ff;}
+.anchor-nav a.active{color:#4a90d9;font-weight:500;border-left-color:#4a90d9;background:#e8f0fe;}
+.main-content{margin-left:160px;flex:1;padding:16px 24px 80px;max-width:1060px;}
+.btn{padding:6px 16px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#333;transition:all .15s;}
+.btn:hover{border-color:#4a90d9;color:#4a90d9;}
+.btn-primary{background:#4a90d9;color:#fff;border-color:#4a90d9;}
+.btn-primary:hover{background:#3a7bc8;color:#fff;}
+.btn-danger{color:#cf1322;border-color:#ffa39e;}
+.btn-danger:hover{background:#fff1f0;}
+.btn-sm{padding:3px 10px;font-size:11px;}
+.status-badge{display:inline-block;padding:3px 12px;border-radius:3px;font-size:12px;font-weight:500;}
+.status-returned-nsc{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e;}
+.status-pending-nsc{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;}
+.status-pending-xpeng{background:#f9f0ff;color:#722ed1;border:1px solid #d3adf7;}
+.status-returned-xpeng{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e;}
+.section{margin-bottom:24px;scroll-margin-top:64px;}
+.section-title{font-size:13px;font-weight:600;color:#333;padding-left:10px;border-left:3px solid #4a90d9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,#e8e8e8,transparent);}
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 20px;margin-bottom:16px;}
+.form-item{display:flex;flex-direction:column;gap:4px;}
+.form-item.span-2{grid-column:span 2;}
+.form-label{font-size:12px;color:#999;}
+.form-label .req{color:#ff4d4f;}
+.form-value{background:#f5f7fa;border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;font-size:12px;color:#333;min-height:32px;display:flex;align-items:center;}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="logo"><span style="font-size:18px;">🔶</span><span class="logo-text">Sales and Service</span></div>
+  <div class="right-area">
+    <span style="color:#666;cursor:pointer;">🔍</span><span style="color:#666;cursor:pointer;">⚙️</span>
+    <span style="color:#666;cursor:pointer;">🔔<span class="badge">3</span></span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="avatar" id="topAvatar">O</div>
+      <span style="font-size:12px;" id="topName">Olver Svain</span>
+      <span class="role-tag" id="topRole">Service Store Manager (Dealer)</span>
+      <span style="font-size:11px;color:#999;">▼</span>
+    </div>
+  </div>
+</div>
+
+<style>
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{background:#f0f2f5;padding:8px 12px;text-align:left;font-size:12px;color:#666;font-weight:500;border-bottom:1px solid #e0e0e0;white-space:nowrap;}
+.data-table td{padding:8px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.data-table tr:hover td{background:#f8fafc;}
+.file-link{color:#4a90d9;cursor:pointer;font-size:11px;text-decoration:none;}
+.file-link:hover{text-decoration:underline;}
+.header-bar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.qr-number{font-size:15px;font-weight:600;color:#333;}
+.org-info{display:flex;gap:24px;font-size:12px;color:#999;flex-wrap:wrap;}
+.org-info span{color:#333;}
+.header-actions{position:fixed;top:56px;right:24px;z-index:90;display:flex;gap:8px;background:#fff;padding:8px 12px;border-radius:0 0 8px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.page-footer{position:fixed;bottom:0;left:160px;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:10px 24px;display:flex;justify-content:flex-end;gap:8px;box-shadow:0 -2px 8px rgba(0,0,0,.04);z-index:50;}
+.btn-print{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#666;transition:all .15s;margin-left:4px;}
+.btn-print:hover{border-color:#4a90d9;color:#4a90d9;background:#f5f9ff;}
+.comment-row td{background:#fafbfd !important;}
+.comment-operator{display:flex;align-items:center;gap:4px;color:#333;}
+.section-title-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title-bar .section-title{margin-bottom:0;flex:1;}
+.hidden{display:none;}
+textarea.form-input{width:100%;border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12px;min-height:80px;resize:vertical;outline:none;font-family:inherit;}
+textarea.form-input:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.1);}
+.file-drop{border:1px dashed #d9d9d9;border-radius:6px;padding:16px;text-align:center;color:#999;font-size:12px;cursor:pointer;transition:all .15s;}
+.file-drop:hover{border-color:#4a90d9;background:#fafcff;}
+.file-drop .drop-icon{font-size:24px;color:#4a90d9;margin-bottom:4px;}
+.file-drop .drop-hint{font-size:11px;color:#bbb;margin-top:4px;}
+.text-link{color:#4a90d9;cursor:pointer;}
+.file-item{display:flex;align-items:center;gap:12px;padding:6px 10px;border:1px solid #f0f0f0;border-radius:4px;margin-bottom:4px;font-size:12px;}
+.file-item .fname{flex:1;color:#333;}
+.file-item .factions{display:flex;gap:8px;}
+.file-item .factions a{font-size:11px;color:#4a90d9;cursor:pointer;text-decoration:none;}
+.download-all{font-size:12px;color:#4a90d9;cursor:pointer;margin-top:6px;display:flex;align-items:center;gap:4px;}
+.add-comment-form{background:#f8fafd;border:1px solid #d6e4f7;border-radius:6px;padding:16px;margin-top:12px;animation:slideDown .2s ease-out;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+.add-comment-form .acf-label{font-size:12px;font-weight:600;color:#333;margin-bottom:8px;}
+.add-comment-form .acf-hint{text-align:right;font-size:11px;color:#bbb;margin-top:4px;}
+.add-comment-form .acf-upload-label{font-size:12px;font-weight:600;color:#333;margin:12px 0 8px;}
+.add-comment-form .acf-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+.uploaded-files{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.file-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;font-size:11px;color:#333;}
+.file-tag .remove{color:#999;cursor:pointer;font-size:13px;margin-left:2px;}
+.file-tag .remove:hover{color:#ff4d4f;}
+.design-note{background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#ad6800;line-height:1.6;}
+.design-note strong{color:#874d00;}
+.sc-btn{padding:8px 20px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fafafa;color:#666;transition:all .15s;}
+.sc-btn:first-child{border-radius:4px 0 0 4px;}
+.sc-btn:last-child{border-radius:0 4px 4px 0;margin-left:-1px;}
+.sc-btn.active{background:#4a90d9;color:#fff;border-color:#4a90d9;z-index:1;position:relative;}
+.scenario-switcher{display:flex;gap:0;margin-bottom:16px;}
+</style>
+
+<div class="page-wrap">
+  <nav class="anchor-nav">
+    <a href="#sec-basic" class="active">Basic Information</a>
+    <a href="#sec-fault">Fault Information</a>
+    <a href="#sec-symptom">Fault Symptom</a>
+    <a href="#sec-ophistory">Operator History</a>
+  </nav>
+
+  <div class="main-content">
+    <div class="design-note">
+      <strong>📐 QR Add Comment in Operator History</strong><br><br>
+      <strong>场景1 Returned(NSC)</strong> — Dealer 视角，被 NSC 退回。Dealer 可以 Add Comment（只读态和编辑态都可以），也可以 Edit → 修改内容 → Submit 重新提交<br>
+      <strong>场景2 Returned(XPeng)</strong> — NSC 视角，被 Region 退回。NSC 可以 Add Comment，也可以重新提交给 Region<br>
+      <strong>场景3 Pending(NSC)</strong> — Dealer 视角，单据已提交等待审批。Dealer 可以 Add Comment 补充信息给审批人，但不能编辑表单<br><br>
+      <strong>排序：</strong>Operator History 按时间倒序（最新在上）<br>
+      <strong>状态：</strong>评论记录的 Approval Status 显示当前 QR 审批状态
+    </div>
+
+    <div class="scenario-switcher">
+      <div class="sc-btn active" onclick="switchScenario(1)">Returned(NSC) — Dealer</div>
+      <div class="sc-btn" onclick="switchScenario(2)">Returned(XPeng) — NSC</div>
+      <div class="sc-btn" onclick="switchScenario(3)">Pending(NSC) — Dealer</div>
+    </div>
+
+    <!-- ==================== SCENARIO 1: Returned(NSC) — Dealer ==================== -->
+    <div id="scenario-1">
+      <div class="header-bar">
+        <div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="qr-number">Quality Report No.: QRIFN20531F03001</div>
+            <span class="status-badge status-returned-nsc">Returned(NSC)</span>
+            <button class="btn-print">🖨️ Print</button>
+          </div>
+          <div class="org-info" style="margin-top:8px;">
+            <div>Country: <span>Germany</span></div>
+            <div>SAP Code: <span>1F03</span></div>
+            <div>Company: <span>XPeng Motors Germany GmbH</span></div>
+            <div>Founder: <span>Berlin Service Center</span></div>
+          </div>
+        </div>
+        <div class="header-actions"><button class="btn">Service History</button></div>
+      </div>
+
+      <div class="section" id="sec-basic">
+        <div class="section-title">Basic Information</div>
+        <div class="form-grid">
+          <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">WO-2025-0612</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP64J1TB004385</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">12,450</div></div>
+          <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+        </div>
+      </div>
+
+      <div class="section" id="sec-fault">
+        <div class="section-title">Fault Information</div>
+        <div class="form-grid">
+          <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">Abnormal DTC codes after PDI - P7+ January batch</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[B] Electrical system</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2025-06-01</div></div>
+        </div>
+      </div>
+
+      <div class="section" id="sec-symptom">
+        <div class="section-title">Fault Symptom</div>
+        <div class="file-item"><span class="fname">DTC_Screenshot_01.jpg</span><div class="factions"><a>Preview</a> <a>Download</a></div></div>
+        <div class="file-item"><span class="fname">PDI_Report_20250601.pdf</span><div class="factions"><a>Preview</a> <a>Download</a></div></div>
+      </div>
+
+      <div class="section" id="sec-ophistory">
+        <div class="section-title-bar">
+          <div class="section-title">Operator History</div>
+          <button class="btn btn-primary btn-sm" onclick="toggleAddComment(1)">+ Add Comment</button>
+        </div>
+        <table class="data-table" id="historyTable-1">
+          <thead><tr>
+            <th style="width:36px;">No.</th><th style="width:120px;">Operator</th><th style="width:200px;">Operation Role</th>
+            <th style="width:155px;">Operation Time</th><th style="width:140px;">Approval Status</th><th>Comments</th><th style="width:170px;">Files</th>
+          </tr></thead>
+          <tbody>
+            <tr class="comment-row">
+              <td>4</td><td><div class="comment-operator">Olver Svain</div></td><td>Service Store Manager (Dealer)</td>
+              <td>2025-06-02 09:15:33</td><td><span class="status-badge status-returned-nsc" style="font-size:11px;padding:2px 8px;">Returned(NSC)</span></td>
+              <td>Additional info: we checked another P7+ from the same batch (VIN: ...4386), same DTC codes appeared after PDI. Might be a batch issue.</td><td>—</td>
+            </tr>
+            <tr class="comment-row">
+              <td>3</td><td><div class="comment-operator">Olver Svain</div></td><td>Service Store Manager (Dealer)</td>
+              <td>2025-06-01 15:40:22</td><td><span class="status-badge status-returned-nsc" style="font-size:11px;padding:2px 8px;">Returned(NSC)</span></td>
+              <td>Ambient temperature was 28°C. Battery SOC was at 85% during PDI. DTC codes appeared immediately after diagnostic reset.</td>
+              <td><a class="file-link">📎 Diag_Log_0601.pdf</a></td>
+            </tr>
+            <tr>
+              <td>2</td><td>Rado Peric</td><td>Technical Manager (NSC)</td>
+              <td>2025-06-01 14:25:08</td><td><span class="status-badge status-returned-nsc" style="font-size:11px;padding:2px 8px;">Returned(NSC)</span></td>
+              <td>Please provide the ambient temperature when the DTC codes appeared, and confirm whether the battery was fully charged during PDI.</td>
+              <td><a class="file-link">📎 DTC_Checklist.pdf</a></td>
+            </tr>
+            <tr>
+              <td>1</td><td>Olver Svain</td><td>Service Store Manager (Dealer)</td>
+              <td>2025-06-01 10:30:15</td><td><span class="status-badge status-pending-nsc" style="font-size:11px;padding:2px 8px;">Pending(NSC)</span></td>
+              <td>Submitted quality report for review</td><td>—</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-comment-form" id="commentForm-1" style="display:none;">
+          <div class="acf-label">Add Comment</div>
+          <textarea class="form-input" id="commentInput-1" placeholder="Enter your comment..." style="min-height:80px;" oninput="updateCharCount(1)"></textarea>
+          <div class="acf-hint"><span id="charCount-1">0</span>/2000</div>
+          <div class="acf-upload-label">Attachment:</div>
+          <div class="file-drop" onclick="simulateUpload(1)"><div class="drop-icon">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div class="drop-hint">Supported: jpg, jpeg, png, pdf (max 20)</div></div>
+          <div class="uploaded-files" id="uploadedFiles-1"></div>
+          <div class="acf-footer"><button class="btn" onclick="toggleAddComment(1)">Cancel</button><button class="btn btn-primary" onclick="submitComment(1)">Add Comment</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCENARIO 2: Returned(XPeng) — NSC ==================== -->
+    <div id="scenario-2" class="hidden">
+      <div class="header-bar">
+        <div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="qr-number">Quality Report No.: QRIFN20531F03002</div>
+            <span class="status-badge status-returned-xpeng">Returned(XPeng)</span>
+            <button class="btn-print">🖨️ Print</button>
+          </div>
+          <div class="org-info" style="margin-top:8px;">
+            <div>Country: <span>Germany</span></div><div>SAP Code: <span>1F03</span></div>
+            <div>Company: <span>XPeng Motors Germany GmbH</span></div><div>Founder: <span>Berlin Service Center</span></div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn">Service History</button><button class="btn btn-primary">Approve</button>
+          <button class="btn">Return</button><button class="btn btn-danger">Reject</button>
+        </div>
+      </div>
+
+      <div class="section"><div class="section-title">Basic Information</div>
+        <div class="form-grid">
+          <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">WO-2025-0715</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP64J1TB004390</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">8,200</div></div>
+          <div class="form-item"><div class="form-label">Model</div><div class="form-value">G9 AWD Performance</div></div>
+        </div>
+      </div>
+
+      <div class="section"><div class="section-title">Fault Information</div>
+        <div class="form-grid">
+          <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">Suspension noise under cold start conditions</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[A] Safety related</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2025-07-10</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title-bar">
+          <div class="section-title">Operator History</div>
+          <button class="btn btn-primary btn-sm" onclick="toggleAddComment(2)">+ Add Comment</button>
+        </div>
+        <table class="data-table" id="historyTable-2">
+          <thead><tr>
+            <th style="width:36px;">No.</th><th style="width:120px;">Operator</th><th style="width:200px;">Operation Role</th>
+            <th style="width:155px;">Operation Time</th><th style="width:140px;">Approval Status</th><th>Comments</th><th style="width:170px;">Files</th>
+          </tr></thead>
+          <tbody>
+            <tr class="comment-row">
+              <td>4</td><td><div class="comment-operator">Rado Peric</div></td><td>Technical Manager (NSC)</td>
+              <td>2025-07-11 15:45:20</td><td><span class="status-badge status-returned-xpeng" style="font-size:11px;padding:2px 8px;">Returned(XPeng)</span></td>
+              <td>Checked local database: 12 out of 340 G9 units in Germany reported similar noise. All below 5°C ambient temp.</td>
+              <td><a class="file-link">📎 G9_Noise_Stats.xlsx</a></td>
+            </tr>
+            <tr>
+              <td>3</td><td>张明远</td><td>Technical Manager (Region)</td>
+              <td>2025-07-11 10:15:00</td><td><span class="status-badge status-returned-xpeng" style="font-size:11px;padding:2px 8px;">Returned(XPeng)</span></td>
+              <td>Need NSC to provide local market data: how many G9 units reported similar noise? Also need ambient temperature range.</td><td>—</td>
+            </tr>
+            <tr>
+              <td>2</td><td>Rado Peric</td><td>Technical Manager (NSC)</td>
+              <td>2025-07-10 14:30:00</td><td><span class="status-badge status-pending-xpeng" style="font-size:11px;padding:2px 8px;">Pending(XPeng)</span></td>
+              <td>Forwarded to Region. Suspension noise consistent with known cold-start issue.</td><td>—</td>
+            </tr>
+            <tr>
+              <td>1</td><td>Hans Mueller</td><td>Service Store Manager (Dealer)</td>
+              <td>2025-07-10 09:00:00</td><td><span class="status-badge status-pending-nsc" style="font-size:11px;padding:2px 8px;">Pending(NSC)</span></td>
+              <td>Submitted quality report</td><td>—</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-comment-form" id="commentForm-2" style="display:none;">
+          <div class="acf-label">Add Comment</div>
+          <textarea class="form-input" id="commentInput-2" placeholder="Enter your comment..." style="min-height:80px;" oninput="updateCharCount(2)"></textarea>
+          <div class="acf-hint"><span id="charCount-2">0</span>/2000</div>
+          <div class="acf-upload-label">Attachment:</div>
+          <div class="file-drop" onclick="simulateUpload(2)"><div class="drop-icon">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div class="drop-hint">Supported: jpg, jpeg, png, pdf (max 20)</div></div>
+          <div class="uploaded-files" id="uploadedFiles-2"></div>
+          <div class="acf-footer"><button class="btn" onclick="toggleAddComment(2)">Cancel</button><button class="btn btn-primary" onclick="submitComment(2)">Add Comment</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCENARIO 3: Pending(NSC) — Dealer can still Add Comment ==================== -->
+    <div id="scenario-3" class="hidden">
+      <div class="header-bar">
+        <div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="qr-number">Quality Report No.: QRIFN20531F03001</div>
+            <span class="status-badge status-pending-nsc">Pending(NSC)</span>
+            <button class="btn-print">🖨️ Print</button>
+          </div>
+          <div class="org-info" style="margin-top:8px;">
+            <div>Country: <span>Germany</span></div><div>SAP Code: <span>1F03</span></div>
+            <div>Company: <span>XPeng Motors Germany GmbH</span></div><div>Founder: <span>Berlin Service Center</span></div>
+          </div>
+        </div>
+        <div class="header-actions"><button class="btn">Service History</button></div>
+      </div>
+
+      <div class="section"><div class="section-title">Basic Information</div>
+        <div class="form-grid">
+          <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">WO-2025-0612</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP64J1TB004385</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">12,450</div></div>
+          <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+        </div>
+      </div>
+
+      <div class="section"><div class="section-title">Fault Information</div>
+        <div class="form-grid">
+          <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">Abnormal DTC codes after PDI - P7+ January batch</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[B] Electrical system</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2025-06-01</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title-bar">
+          <div class="section-title">Operator History</div>
+          <button class="btn btn-primary btn-sm" onclick="toggleAddComment(3)">+ Add Comment</button>
+        </div>
+
+        <div style="background:#e6f7ff;border:1px solid #91d5ff;border-radius:4px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#096dd9;">
+          💡 单据已提交等待 NSC 审批。Dealer 仍可 Add Comment 补充信息，审批人打开详情时能看到。
+        </div>
+
+        <table class="data-table" id="historyTable-3">
+          <thead><tr>
+            <th style="width:36px;">No.</th><th style="width:120px;">Operator</th><th style="width:200px;">Operation Role</th>
+            <th style="width:155px;">Operation Time</th><th style="width:140px;">Approval Status</th><th>Comments</th><th style="width:170px;">Files</th>
+          </tr></thead>
+          <tbody>
+            <tr class="comment-row">
+              <td>6</td><td><div class="comment-operator">Olver Svain</div></td><td>Service Store Manager (Dealer)</td>
+              <td>2025-06-03 10:20:00</td><td><span class="status-badge status-pending-nsc" style="font-size:11px;padding:2px 8px;">Pending(NSC)</span></td>
+              <td>Forgot to mention: the same issue was reported by another dealer in France last week. Might be worth checking with them.</td><td>—</td>
+            </tr>
+            <tr>
+              <td>5</td><td>Olver Svain</td><td>Service Store Manager (Dealer)</td>
+              <td>2025-06-03 09:00:00</td><td><span class="status-badge status-pending-nsc" style="font-size:11px;padding:2px 8px;">Pending(NSC)</span></td>
+              <td>Re-submitted with updated diagnostic data and ambient temperature info as requested.</td><td>—</td>
+            </tr>
+            <tr class="comment-row">
+              <td>4</td><td><div class="comment-operator">Olver Svain</div></td><td>Service Store Manager (Dealer)</td>
+              <td>2025-06-02 09:15:33</td><td><span class="status-badge status-returned-nsc" style="font-size:11px;padding:2px 8px;">Returned(NSC)</span></td>
+              <td>Additional info: another P7+ from same batch (VIN: ...4386) has same DTC codes. Might be a batch issue.</td><td>—</td>
+            </tr>
+            <tr>
+              <td>3</td><td>Rado Peric</td><td>Technical Manager (NSC)</td>
+              <td>2025-06-01 14:25:08</td><td><span class="status-badge status-returned-nsc" style="font-size:11px;padding:2px 8px;">Returned(NSC)</span></td>
+              <td>Please provide the ambient temperature when the DTC codes appeared, and confirm whether the battery was fully charged during PDI.</td>
+              <td><a class="file-link">📎 DTC_Checklist.pdf</a></td>
+            </tr>
+            <tr>
+              <td>2</td><td>Olver Svain</td><td>Service Store Manager (Dealer)</td>
+              <td>2025-06-01 10:30:15</td><td><span class="status-badge status-pending-nsc" style="font-size:11px;padding:2px 8px;">Pending(NSC)</span></td>
+              <td>Submitted quality report for review</td><td>—</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="add-comment-form" id="commentForm-3" style="display:none;">
+          <div class="acf-label">Add Comment</div>
+          <textarea class="form-input" id="commentInput-3" placeholder="Enter your comment..." style="min-height:80px;" oninput="updateCharCount(3)"></textarea>
+          <div class="acf-hint"><span id="charCount-3">0</span>/2000</div>
+          <div class="acf-upload-label">Attachment:</div>
+          <div class="file-drop" onclick="simulateUpload(3)"><div class="drop-icon">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div class="drop-hint">Supported: jpg, jpeg, png, pdf (max 20)</div></div>
+          <div class="uploaded-files" id="uploadedFiles-3"></div>
+          <div class="acf-footer"><button class="btn" onclick="toggleAddComment(3)">Cancel</button><button class="btn btn-primary" onclick="submitComment(3)">Add Comment</button></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="page-footer" id="pageFooter">
+  <button class="btn btn-primary">Edit</button>
+</div>
+
+<script>
+const scenarioConfig = {
+  1: { avatar:'O', name:'Olver Svain', role:'Service Store Manager (Dealer)',
+       footer:'<button class="btn btn-primary">Edit</button>',
+       operator:'Olver Svain', opRole:'Service Store Manager (Dealer)',
+       statusClass:'status-returned-nsc', statusText:'Returned(NSC)' },
+  2: { avatar:'R', name:'Rado Peric', role:'Technical Manager (NSC)',
+       footer:'<button class="btn btn-primary">Submit to XPeng</button>',
+       operator:'Rado Peric', opRole:'Technical Manager (NSC)',
+       statusClass:'status-returned-xpeng', statusText:'Returned(XPeng)' },
+  3: { avatar:'O', name:'Olver Svain', role:'Service Store Manager (Dealer)',
+       footer:'',
+       operator:'Olver Svain', opRole:'Service Store Manager (Dealer)',
+       statusClass:'status-pending-nsc', statusText:'Pending(NSC)' }
+};
+
+function switchScenario(n) {
+  [1,2,3].forEach(i => document.getElementById('scenario-'+i).classList.toggle('hidden', i!==n));
+  document.querySelectorAll('.sc-btn').forEach((b,i) => b.classList.toggle('active', i===n-1));
+  const c = scenarioConfig[n];
+  document.getElementById('topAvatar').textContent = c.avatar;
+  document.getElementById('topName').textContent = c.name;
+  document.getElementById('topRole').textContent = c.role;
+  document.getElementById('pageFooter').innerHTML = c.footer;
+}
+
+function toggleAddComment(n) {
+  const f = document.getElementById('commentForm-'+n);
+  if (f.style.display==='none') { f.style.display='block'; f.querySelector('textarea').focus(); }
+  else { f.style.display='none'; document.getElementById('commentInput-'+n).value=''; document.getElementById('charCount-'+n).textContent='0'; document.getElementById('uploadedFiles-'+n).innerHTML=''; }
+}
+
+function updateCharCount(n) {
+  const len = document.getElementById('commentInput-'+n).value.length;
+  const el = document.getElementById('charCount-'+n);
+  el.textContent = len; el.style.color = len>2000?'#ff4d4f':'#bbb';
+}
+
+let fc=0;
+function simulateUpload(n) {
+  fc++;
+  const c = document.getElementById('uploadedFiles-'+n);
+  const t = document.createElement('span'); t.className='file-tag';
+  t.innerHTML='📎 file_'+fc+'.pdf <span class="remove" onclick="this.parentElement.remove()">✕</span>';
+  c.appendChild(t);
+}
+
+function submitComment(n) {
+  const input = document.getElementById('commentInput-'+n);
+  const content = input.value.trim();
+  if (!content) { alert('Please enter comment content'); return; }
+  if (content.length>2000) { alert('Content cannot exceed 2000 characters'); return; }
+  const cfg = scenarioConfig[n];
+  const files = document.getElementById('uploadedFiles-'+n).querySelectorAll('.file-tag');
+  let fh = '—';
+  if (files.length>0) fh = Array.from(files).map(t=>'<a class="file-link">'+t.textContent.replace('✕','').trim()+'</a>').join(' ');
+  const now=new Date();
+  const ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+  const tbody=document.getElementById('historyTable-'+n).querySelector('tbody');
+  const rc=tbody.querySelectorAll('tr').length+1;
+  const row=document.createElement('tr'); row.className='comment-row';
+  row.innerHTML='<td>'+rc+'</td><td><div class="comment-operator">'+cfg.operator+'</div></td><td>'+cfg.opRole+'</td><td>'+ts+'</td><td><span class="status-badge '+cfg.statusClass+'" style="font-size:11px;padding:2px 8px;">'+cfg.statusText+'</span></td><td>'+content.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</td><td>'+fh+'</td>';
+  row.style.opacity='0'; row.style.transform='translateY(-4px)';
+  tbody.insertBefore(row, tbody.firstChild);
+  requestAnimationFrame(()=>{ row.style.transition='all .3s ease'; row.style.opacity='1'; row.style.transform='translateY(0)'; });
+  toggleAddComment(n);
+  showToast('Comment submitted successfully');
+}
+
+function showToast(msg) {
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#52c41a;color:#fff;padding:8px 24px;border-radius:4px;font-size:13px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:opacity .3s;';
+  t.textContent='✓ '+msg; document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); },2000);
+}
+
+const obs=new IntersectionObserver(entries=>{entries.forEach(en=>{if(en.isIntersecting){const id=en.target.id;document.querySelectorAll('.anchor-nav a').forEach(a=>{a.classList.toggle('active',a.getAttribute('href').replace('#','')=== id);});}});},{rootMargin:'-80px 0px -60% 0px'});
+document.querySelectorAll('.section[id]').forEach(s=>obs.observe(s));
+document.querySelectorAll('.anchor-nav a').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+</script>
+</body>
+</html>

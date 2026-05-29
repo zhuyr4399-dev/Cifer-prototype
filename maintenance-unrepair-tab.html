@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>邀约管理 - 历史未修项原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 13px; color: #333; background: #f0f2f5; }
+
+  /* === 顶部导航 === */
+  .top-bar { height: 40px; background: #1a1a2e; display: flex; align-items: center; padding: 0 16px; color: #fff; }
+  .top-bar .logo { font-size: 14px; font-weight: bold; margin-right: 24px; display: flex; align-items: center; gap: 6px; }
+  .top-bar .logo .x { color: #4a90d9; font-size: 16px; font-weight: bold; }
+  .top-bar .app-link { font-size: 12px; color: #aaa; margin-right: 16px; cursor: pointer; }
+  .top-bar .app-link:hover { color: #fff; }
+  .top-bar .tabs { display: flex; gap: 4px; flex: 1; }
+  .top-bar .tab-item { font-size: 12px; color: #ccc; padding: 4px 12px; background: #2a2a3e; border-radius: 4px 4px 0 0; cursor: pointer; display: flex; align-items: center; gap: 4px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top-bar .tab-item.active { background: #3a3a5e; color: #fff; }
+  .top-bar .tab-item .close { font-size: 10px; opacity: 0.6; }
+  .top-bar .right-area { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .top-bar .search-box { background: #2a2a3e; border: none; border-radius: 4px; padding: 4px 10px; color: #aaa; font-size: 12px; width: 100px; }
+  .top-bar .icon-btn { color: #aaa; cursor: pointer; font-size: 14px; }
+  .top-bar .user { display: flex; align-items: center; gap: 6px; color: #ccc; font-size: 12px; }
+  .top-bar .avatar { width: 24px; height: 24px; border-radius: 50%; background: #4a90d9; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; }
+
+  /* === 主布局 === */
+  .main-layout { display: flex; height: calc(100vh - 40px); }
+
+  /* === 左侧导航 === */
+  .sidebar { width: 64px; background: #1e2a3a; display: flex; flex-direction: column; align-items: center; padding-top: 8px; }
+  .sidebar .nav-item { width: 100%; padding: 10px 0; text-align: center; color: #8899aa; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .sidebar .nav-item .icon { font-size: 16px; }
+  .sidebar .nav-item:hover { color: #b0c4de; }
+  .sidebar .nav-item.active { color: #4a90d9; background: rgba(74,144,217,0.1); }
+
+  /* === 内容区 === */
+  .content-area { flex: 1; display: flex; background: #fff; }
+
+  /* === 左侧子菜单 === */
+  .sub-menu { width: 120px; background: #f7f8fa; border-right: 1px solid #e8e8e8; padding-top: 12px; }
+  .sub-menu .menu-item { padding: 8px 16px; font-size: 13px; color: #666; cursor: pointer; }
+  .sub-menu .menu-item:hover { color: #333; background: #eef1f5; }
+  .sub-menu .menu-item.active { color: #4a90d9; font-weight: 500; background: #e8f0fe; border-left: 3px solid #4a90d9; }
+
+  /* === 右侧主内容 === */
+  .main-content { flex: 1; padding: 20px 24px; overflow-y: auto; }
+
+  /* === 信息区块 === */
+  .section-title { font-size: 13px; font-weight: bold; color: #333; padding-left: 8px; border-left: 3px solid #4a90d9; margin-bottom: 12px; }
+  .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 24px; margin-bottom: 20px; }
+  .info-item { display: flex; align-items: center; gap: 6px; }
+  .info-item .label { color: #999; font-size: 12px; white-space: nowrap; }
+  .info-item .value { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 3px; padding: 4px 10px; font-size: 12px; color: #333; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* === Tab 切换 === */
+  .tab-bar { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid #e8e8e8; }
+  .tab-btn { padding: 8px 16px; font-size: 13px; color: #666; cursor: pointer; border: 1px solid #e0e0e0; border-bottom: none; background: #f5f5f5; border-radius: 4px 4px 0 0; margin-right: -1px; position: relative; }
+  .tab-btn:hover { color: #333; }
+  .tab-btn.active { background: #4a90d9; color: #fff; border-color: #4a90d9; }
+  .tab-btn .count { font-size: 11px; }
+
+  /* === 表格 === */
+  .data-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  .data-table th { background: #f0f2f5; padding: 8px 12px; text-align: left; font-size: 12px; color: #666; font-weight: 500; border-bottom: 1px solid #e0e0e0; white-space: nowrap; }
+  .data-table td { padding: 8px 12px; font-size: 12px; color: #333; border-bottom: 1px solid #f0f0f0; }
+  .data-table tr:hover td { background: #f8fafc; }
+
+  /* === 状态标签 === */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+  .tag-red { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
+  .tag-orange { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+  .tag-green { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+  .tag-blue { background: #e6f7ff; color: #096dd9; border: 1px solid #91d5ff; }
+  .tag-gray { background: #f5f5f5; color: #999; border: 1px solid #d9d9d9; }
+
+  .link { color: #4a90d9; cursor: pointer; text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+
+  /* === 按钮 === */
+  .btn { padding: 5px 14px; border-radius: 3px; font-size: 12px; cursor: pointer; border: 1px solid #d9d9d9; background: #fff; color: #333; }
+  .btn:hover { border-color: #4a90d9; color: #4a90d9; }
+  .btn-primary { background: #4a90d9; color: #fff; border-color: #4a90d9; }
+  .btn-primary:hover { background: #3a7bc8; }
+  .btn-danger { color: #cf1322; border-color: #ffa39e; }
+  .btn-danger:hover { background: #fff1f0; }
+  .btn-sm { padding: 3px 10px; font-size: 11px; }
+
+  /* === 空状态 === */
+  .empty { text-align: center; padding: 40px 0; color: #ccc; font-size: 13px; }
+
+  /* === 分割线 === */
+  .divider { height: 1px; background: #e8e8e8; margin: 20px 0; }
+
+  /* === 跟进记录区 === */
+  .follow-form { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .follow-form .form-label { font-size: 12px; color: #333; white-space: nowrap; }
+  .follow-form .form-label .required { color: #cf1322; }
+  .follow-form select, .follow-form input[type="text"], .follow-form input[type="date"] {
+    border: 1px solid #d9d9d9; border-radius: 3px; padding: 4px 8px; font-size: 12px; color: #333; background: #fff;
+  }
+  .follow-form select { min-width: 140px; }
+  .follow-form input[type="text"] { min-width: 200px; }
+  .follow-form .char-count { font-size: 11px; color: #999; }
+
+  .follow-actions { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 16px; }
+
+  /* === 销项弹窗 === */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 6px; width: 420px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+  .modal-header { padding: 14px 20px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; }
+  .modal-header .title { font-size: 14px; font-weight: 500; }
+  .modal-header .close-btn { cursor: pointer; color: #999; font-size: 16px; }
+  .modal-body { padding: 20px; }
+  .modal-body .form-group { margin-bottom: 14px; }
+  .modal-body .form-group label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+  .modal-body .form-group label .required { color: #cf1322; }
+  .modal-body .form-group select, .modal-body .form-group textarea {
+    width: 100%; border: 1px solid #d9d9d9; border-radius: 3px; padding: 6px 10px; font-size: 12px;
+  }
+  .modal-body .form-group textarea { height: 80px; resize: vertical; }
+  .modal-footer { padding: 12px 20px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* === 提示文字 === */
+  .hint { font-size: 11px; color: #999; margin-top: 4px; }
+
+  /* === 页面标注 === */
+  .prototype-note { position: fixed; bottom: 12px; right: 12px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 8px 14px; font-size: 11px; color: #ad8b00; z-index: 999; max-width: 320px; line-height: 1.6; }
+  .prototype-note strong { color: #d48806; }
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部导航 ===== -->
+<div class="top-bar">
+  <div class="logo"><span class="x">X</span> 销服系统</div>
+  <div class="app-link">下载APP</div>
+  <div class="tabs">
+    <div class="tab-item">工作台</div>
+    <div class="tab-item">邀约管理 ×</div>
+    <div class="tab-item">邀约管理-159792 ×</div>
+    <div class="tab-item">邀约管理-002259 ×</div>
+    <div class="tab-item active">⟳ 邀约管理-002150... ×</div>
+  </div>
+  <div class="right-area">
+    <input class="search-box" placeholder="🔍 邀约" />
+    <span class="icon-btn">🔔</span>
+    <div class="user">
+      <div class="avatar">朱</div>
+      <span>朱嫣然 ▾</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 主布局 ===== -->
+<div class="main-layout">
+
+  <!-- 左侧导航 -->
+  <div class="sidebar">
+    <div class="nav-item"><span class="icon">📋</span>工作台</div>
+    <div class="nav-item"><span class="icon">📊</span>数智</div>
+    <div class="nav-item"><span class="icon">💰</span>金融</div>
+    <div class="nav-item"><span class="icon">📝</span>订单</div>
+    <div class="nav-item"><span class="icon">📦</span>交付</div>
+    <div class="nav-item"><span class="icon">🚗</span>车辆</div>
+    <div class="nav-item active"><span class="icon">🔧</span>服务</div>
+    <div class="nav-item"><span class="icon">🌐</span>网络</div>
+    <div class="nav-item"><span class="icon">⚙️</span>配件</div>
+    <div class="nav-item"><span class="icon">📑</span>审批</div>
+    <div class="nav-item"><span class="icon">🏢</span>中心仓</div>
+    <div class="nav-item"><span class="icon">🚚</span>系统</div>
+    <div class="nav-item"><span class="icon">📖</span>培训</div>
+    <div class="nav-item"><span class="icon">💬</span>企微</div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="content-area">
+
+    <!-- 左侧子菜单 -->
+    <div class="sub-menu">
+      <div class="menu-item"><a class="link" style="text-decoration:none">车辆信息</a></div>
+      <div class="menu-item"><a class="link" style="text-decoration:none">客户信息</a></div>
+      <div class="menu-item active">待邀约信息</div>
+      <div class="menu-item">跟进记录</div>
+      <div class="menu-item">维修履历</div>
+    </div>
+
+    <!-- 右侧主内容 -->
+    <div class="main-content" id="mainContent">
+
+      <!-- ===== 车辆信息 ===== -->
+      <div class="section-title">车辆信息</div>
+      <div class="info-grid">
+        <div class="info-item"><span class="label">VIN码</span><span class="value">L1NSPGH90NA086292</span></div>
+        <div class="info-item"><span class="label">车牌号</span><span class="value">粤W999040</span></div>
+        <div class="info-item"><span class="label">车系名称</span><span class="value">G3 460</span></div>
+        <div class="info-item"><span class="label">车型名称</span><span class="value">G3 460悦鹏版</span></div>
+        <div class="info-item"><span class="label">车型编码</span><span class="value">DCAL</span></div>
+        <div class="info-item"><span class="label">车辆用途</span><span class="value">非营运(个人)</span></div>
+        <div class="info-item"><span class="label">交付日期</span><span class="value">2023-12-28 00:00:00</span></div>
+        <div class="info-item"><span class="label">开票日期</span><span class="value">2023-12-28 00:00:00</span></div>
+      </div>
+
+      <!-- ===== 客户信息 ===== -->
+      <div class="section-title">客户信息</div>
+      <div class="info-grid">
+        <div class="info-item"><span class="label">车主姓名</span><span class="value">潘AA</span></div>
+        <div class="info-item"><span class="label">车主电话</span><span class="value">13300000000</span></div>
+        <div class="info-item"><span class="label">使用人姓名</span><span class="value">潘AA</span></div>
+        <div class="info-item"><span class="label">使用人电话</span><span class="value">13300000000</span></div>
+      </div>
+
+      <!-- ===== 待邀约信息 ===== -->
+      <div class="section-title">待邀约信息</div>
+
+      <!-- Tab 切换栏 -->
+      <div class="tab-bar">
+        <div class="tab-btn" onclick="switchTab('alarm')">告警单 (1)</div>
+        <div class="tab-btn" onclick="switchTab('dispose')">活动单 (0)</div>
+        <div class="tab-btn" onclick="switchTab('market')">市场处置信息 (1)</div>
+        <div class="tab-btn" onclick="switchTab('vehicle')">车辆处对信息 (0)</div>
+        <div class="tab-btn" onclick="switchTab('health')">保养健康度 (3)</div>
+        <div class="tab-btn active" onclick="switchTab('unrepair')">历史未修项 (3)</div>
+      </div>
+
+      <!-- ==================== -->
+      <!-- Tab: 保养健康度 (现有) -->
+      <!-- ==================== -->
+      <div id="tab-health" class="tab-panel" style="display:none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>保养项目</th>
+              <th>健康度</th>
+              <th>时间周期（天）</th>
+              <th>里程周期（km）</th>
+              <th>里程类型</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>车辆常规维护检查</td>
+              <td><span class="tag tag-red">过期</span></td>
+              <td>402/365</td>
+              <td>19801/20000</td>
+              <td>整车里程</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>空调滤芯</td>
+              <td><span class="tag tag-red">过期</span></td>
+              <td>402/365</td>
+              <td>19801/20000</td>
+              <td>整车里程</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>制动液</td>
+              <td><span class="tag tag-green">健康</span></td>
+              <td>601/1460</td>
+              <td>23101/40000</td>
+              <td>整车里程</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================================ -->
+      <!-- Tab: 历史未修项 (新增 - 核心原型) -->
+      <!-- ================================ -->
+      <div id="tab-unrepair" class="tab-panel">
+
+        <!-- 提示说明 -->
+        <div style="background:#e6f7ff; border:1px solid #91d5ff; border-radius:4px; padding:8px 14px; margin-bottom:14px; font-size:12px; color:#096dd9; display:flex; align-items:center; gap:6px;">
+          <span>ℹ️</span>
+          <span>以下为历次进店车间检查中发现的未施工保养项目，相同项目仅展示最新一次检查数据。客户完成施工后系统自动销项。</span>
+        </div>
+
+        <!-- 操作栏 -->
+        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px;">
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-sm" onclick="openBatchCloseModal()">批量标记已处理</button>
+          </div>
+        </div>
+
+        <!-- 未修项列表 -->
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:32px;"><input type="checkbox" id="checkAll" onclick="toggleCheckAll()" /></th>
+              <th>序号</th>
+              <th>保养项目</th>
+              <th>异常描述</th>
+              <th>检测数值</th>
+              <th>处理状态</th>
+              <th>不修原因</th>
+              <th>检查报告</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>1</td>
+              <td style="font-weight:500;">轮胎更换</td>
+              <td>左前轮胎纹深度不足</td>
+              <td><span style="color:#cf1322; font-weight:500;">1.8mm</span> <span style="color:#999; font-size:11px;">（标准≥3mm）</span></td>
+              <td><span class="tag tag-red">未处理</span></td>
+              <td>客户预算不足</td>
+              <td><a class="link">RPT-20260313-001</a></td>
+              <td>
+                <a class="link" onclick="openCloseModal('轮胎更换')">标记已处理</a>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>2</td>
+              <td style="font-weight:500;">前挡风玻璃</td>
+              <td>玻璃边缘存在裂纹</td>
+              <td><span style="color:#d46b08;">裂纹长度约8cm</span></td>
+              <td><span class="tag tag-red">未处理</span></td>
+              <td>客户计划下次处理</td>
+              <td><a class="link">RPT-20260313-001</a></td>
+              <td>
+                <a class="link" onclick="openCloseModal('前挡风玻璃')">标记已处理</a>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>3</td>
+              <td style="font-weight:500;">空调散热器清洗</td>
+              <td>散热器积灰严重，影响制冷效率</td>
+              <td><span style="color:#d46b08;">重度积灰</span></td>
+              <td><span class="tag tag-green">已处理</span></td>
+              <td>—</td>
+              <td><a class="link">RPT-20260313-001</a></td>
+              <td>
+                <span style="color:#999;">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="font-size:11px; color:#999; margin-top:8px;">
+          💡 说明：客户在任意门店完成对应项目施工后，系统自动标记已处理并从列表移除。SA 也可手动标记已处理（如客户拒绝/外部已维修）。
+        </div>
+      </div>
+
+      <!-- 其他 tab 占位 -->
+      <div id="tab-alarm" class="tab-panel" style="display:none;">
+        <table class="data-table">
+          <thead><tr><th>序号</th><th>活动编码</th><th>活动主题</th><th>活动小类</th><th>发布时间</th><th>举升作业</th><th>维修时长</th></tr></thead>
+          <tbody><tr><td>1</td><td><a class="link">ServiceActivityB</a></td><td>项目1-服务活动B</td><td>主动服务活动</td><td>2025-11-27 20:53:25</td><td>否</td><td>1</td></tr></tbody>
+        </table>
+      </div>
+      <div id="tab-dispose" class="tab-panel" style="display:none;"><div class="empty">暂无数据</div></div>
+      <div id="tab-market" class="tab-panel" style="display:none;">
+        <table class="data-table">
+          <thead><tr><th>序号</th><th>活动编码</th><th>活动主题</th><th>活动小类</th><th>发布时间</th><th>举升作业</th><th>维修时长</th></tr></thead>
+          <tbody><tr><td>1</td><td><a class="link">ServiceActivityB</a></td><td>项目1-服务活动B</td><td>主动服务活动</td><td>2025-11-27 20:53:25</td><td>否</td><td>1</td></tr></tbody>
+        </table>
+      </div>
+      <div id="tab-vehicle" class="tab-panel" style="display:none;"><div class="empty">暂无数据</div></div>
+
+      <!-- ===== 分割线 ===== -->
+      <div class="divider"></div>
+
+      <!-- ===== 跟进记录 ===== -->
+      <div class="section-title">跟进记录</div>
+      <div class="follow-form">
+        <span class="form-label"><span class="required">*</span> 跟进状态</span>
+        <select>
+          <option value="">请选择跟进状态</option>
+          <option>未接通</option>
+          <option>邀约成功</option>
+          <option>待再次跟进</option>
+          <option>空号</option>
+          <option>多次邀约,客户均拒绝回店检修车辆</option>
+          <option>车辆已转卖</option>
+          <option>其他</option>
+        </select>
+        <span class="form-label">下次跟进时间</span>
+        <input type="date" />
+        <span class="form-label"><span class="required">*</span> 跟进说明</span>
+        <input type="text" placeholder="请输入内容" />
+        <span class="char-count">0/50</span>
+      </div>
+      <div class="follow-actions">
+        <button class="btn btn-primary">保存记录</button>
+        <button class="btn">重置</button>
+      </div>
+
+      <!-- 跟进记录表格 -->
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>跟进时间</th>
+            <th>跟进人</th>
+            <th>跟进状态</th>
+            <th>保养项目</th>
+            <th>下次跟进时间</th>
+            <th>跟进说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>2026-04-03 10:57:40</td>
+            <td>郭绍洲</td>
+            <td>未接通</td>
+            <td>—</td>
+            <td>2026-04-03 15:00:00</td>
+            <td>客户未接电话，下午再跟进一次</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>2026-04-03 11:04:26</td>
+            <td>郭绍洲</td>
+            <td>邀约成功</td>
+            <td>—</td>
+            <td></td>
+            <td>预约成功，关闭邀约信息</td>
+          </tr>
+          <tr style="color:#52c41a;">
+            <td>3</td>
+            <td>2026-04-03 14:05:51</td>
+            <td>郭绍洲</td>
+            <td>已进店维修</td>
+            <td>电驱润滑油更换、空调滤芯更换</td>
+            <td></td>
+            <td>车辆保养完成，自动触发添加的跟进记录</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>2026-04-07 09:48:43</td>
+            <td>严斯涵</td>
+            <td>邀约成功</td>
+            <td>—</td>
+            <td></td>
+            <td>预约成功，关闭邀约信息</td>
+          </tr>
+          <tr style="color:#52c41a;">
+            <td>5</td>
+            <td>2026-04-08 21:40:58</td>
+            <td>刘小红</td>
+            <td>已进店维修</td>
+            <td>制动液更换、轮胎更换</td>
+            <td></td>
+            <td>车辆保养完成，自动触发添加的跟进记录</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ===== 分割线 ===== -->
+      <div class="divider"></div>
+
+      <!-- ===== 维修履历 ===== -->
+      <div class="section-title">维修履历</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+        <span style="font-size:12px; color:#666;">到店时间</span>
+        <input type="date" value="2026-03-01" style="border:1px solid #d9d9d9; border-radius:3px; padding:4px 8px; font-size:12px;" />
+        <span style="font-size:12px; color:#666;">至</span>
+        <input type="date" value="2026-03-29" style="border:1px solid #d9d9d9; border-radius:3px; padding:4px 8px; font-size:12px;" />
+        <span style="font-size:12px; color:#666;">业务类别</span>
+        <select style="border:1px solid #d9d9d9; border-radius:3px; padding:4px 8px; font-size:12px;"><option>所有作业类别</option></select>
+        <span style="font-size:12px; color:#666;">维修类型</span>
+        <select style="border:1px solid #d9d9d9; border-radius:3px; padding:4px 8px; font-size:12px;"><option>请选择维修类型</option></select>
+        <button class="btn btn-sm">查询</button>
+        <button class="btn btn-sm btn-primary">重置</button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>序号</th><th>操作</th><th>施工单号</th><th>门店名称</th><th>车牌号</th><th>客户名称</th><th>客户电话</th><th>到店时间</th><th>交车时间</th><th>最大业务类型</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="10" class="empty">暂无数据</td></tr>
+        </tbody>
+      </table>
+
+    </div><!-- /main-content -->
+  </div><!-- /content-area -->
+</div><!-- /main-layout -->
+
+<!-- ===== 手动销项弹窗 ===== -->
+<div class="modal-overlay" id="closeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="title">标记已处理</span>
+      <span class="close-btn" onclick="closeCloseModal()">✕</span>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fffbe6; border:1px solid #ffe58f; border-radius:4px; padding:8px 12px; margin-bottom:14px; font-size:12px; color:#ad8b00;">
+        ⚠️ 标记已处理后该未修项将不再出现在邀约列表中，请确认操作。
+      </div>
+      <div class="form-group">
+        <label>处理项目</label>
+        <div style="font-size:13px; font-weight:500; color:#333; padding:4px 0;" id="closeItemName">轮胎更换</div>
+      </div>
+      <div class="form-group">
+        <label><span class="required">*</span> 处理原因</label>
+        <select>
+          <option value="">请选择处理原因</option>
+          <option>客户已在外部维修</option>
+          <option>客户明确拒绝维修</option>
+          <option>检测误判/项目无需维修</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>备注说明</label>
+        <textarea placeholder="请输入备注（选填）"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeCloseModal()">取消</button>
+      <button class="btn btn-primary" onclick="closeCloseModal()">确认处理</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 批量销项弹窗 ===== -->
+<div class="modal-overlay" id="batchCloseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="title">批量标记已处理</span>
+      <span class="close-btn" onclick="closeBatchCloseModal()">✕</span>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fffbe6; border:1px solid #ffe58f; border-radius:4px; padding:8px 12px; margin-bottom:14px; font-size:12px; color:#ad8b00;">
+        ⚠️ 您已选择 <strong>0</strong> 项未修项目，标记已处理后将不再出现在邀约列表中。
+      </div>
+      <div class="form-group">
+        <label><span class="required">*</span> 处理原因</label>
+        <select>
+          <option value="">请选择处理原因</option>
+          <option>客户已在外部维修</option>
+          <option>客户明确拒绝维修</option>
+          <option>检测误判/项目无需维修</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>备注说明</label>
+        <textarea placeholder="请输入备注（选填）"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeBatchCloseModal()">取消</button>
+      <button class="btn btn-primary" onclick="closeBatchCloseModal()">确认处理</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tab-' + name);
+  if (panel) panel.style.display = 'block';
+  event.target.classList.add('active');
+}
+
+function openCloseModal(itemName) {
+  document.getElementById('closeItemName').textContent = itemName;
+  document.getElementById('closeModal').classList.add('show');
+}
+function closeCloseModal() {
+  document.getElementById('closeModal').classList.remove('show');
+}
+function openBatchCloseModal() {
+  const checked = document.querySelectorAll('.row-check:checked').length;
+  document.querySelector('#batchCloseModal strong').textContent = checked;
+  document.getElementById('batchCloseModal').classList.add('show');
+}
+function closeBatchCloseModal() {
+  document.getElementById('batchCloseModal').classList.remove('show');
+}
+function toggleCheckAll() {
+  const all = document.getElementById('checkAll').checked;
+  document.querySelectorAll('.row-check').forEach(c => c.checked = all);
+}
+</script>
+
+</body>
+</html></div>

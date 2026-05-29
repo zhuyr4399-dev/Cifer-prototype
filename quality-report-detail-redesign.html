@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality Report Detail - Redesign</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;font-size:13px;color:#333;background:#f5f7fa;}
+.top-bar{height:48px;background:#fff;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #e8e8e8;position:fixed;top:0;left:0;right:0;z-index:100;}
+.top-bar .logo{display:flex;align-items:center;gap:8px;margin-right:24px;}
+.top-bar .logo-text{font-size:14px;font-weight:600;color:#333;}
+.top-bar .right-area{display:flex;align-items:center;gap:16px;margin-left:auto;}
+.top-bar .badge{background:#ff4d4f;color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;position:relative;top:-6px;left:-4px;}
+.top-bar .avatar{width:28px;height:28px;border-radius:50%;background:#ff7a45;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.top-bar .role-tag{font-size:11px;color:#4a90d9;background:#e6f0ff;padding:1px 6px;border-radius:3px;}
+.page-wrap{display:flex;margin-top:48px;min-height:calc(100vh - 48px);}
+.anchor-nav{width:160px;position:fixed;top:48px;left:0;bottom:0;background:#fff;border-right:1px solid #e8e8e8;padding:16px 0;overflow-y:auto;z-index:50;}
+.anchor-nav a{display:block;padding:8px 16px;font-size:12px;color:#666;text-decoration:none;border-left:3px solid transparent;transition:all .15s;line-height:1.5;}
+.anchor-nav a:hover{color:#4a90d9;background:#f5f9ff;}
+.anchor-nav a.active{color:#4a90d9;font-weight:500;border-left-color:#4a90d9;background:#e8f0fe;}
+.main-content{margin-left:160px;flex:1;padding:16px 24px 80px;max-width:1060px;}
+.page-switcher{display:flex;gap:0;margin-bottom:16px;}
+.sw-btn{padding:8px 20px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fafafa;color:#666;}
+.sw-btn:first-child{border-radius:4px 0 0 4px;}
+.sw-btn:last-child{border-radius:0 4px 4px 0;margin-left:-1px;}
+.sw-btn.active{background:#4a90d9;color:#fff;border-color:#4a90d9;z-index:1;position:relative;}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="logo"><span style="font-size:18px;">🔶</span><span class="logo-text">Sales and Service</span></div>
+  <div class="right-area">
+    <span style="color:#666;cursor:pointer;">🔍</span><span style="color:#666;cursor:pointer;">⚙️</span>
+    <span style="color:#666;cursor:pointer;">🔔<span class="badge">99+</span></span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="avatar">朱</div><span style="font-size:12px;">朱晓然</span>
+      <span class="role-tag">Technical Manager (NSC)</span><span style="font-size:11px;color:#999;">▼</span>
+    </div>
+  </div>
+</div>
+
+<style>
+.header-bar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.qr-number{font-size:15px;font-weight:600;color:#333;}
+.status-badge{display:inline-block;padding:3px 12px;border-radius:3px;font-size:12px;font-weight:500;margin-left:12px;}
+.status-returned{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e;}
+.status-pending{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;}
+.status-approved{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f;}
+.btn-print{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#666;transition:all .15s;margin-left:4px;}
+.btn-print:hover{border-color:#4a90d9;color:#4a90d9;background:#f5f9ff;}
+.header-actions{position:fixed;top:56px;right:24px;z-index:90;display:flex;gap:8px;background:#fff;padding:8px 12px;border-radius:0 0 8px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.org-info{display:flex;gap:24px;font-size:12px;color:#999;margin-bottom:16px;flex-wrap:wrap;}
+.org-info span{color:#333;}
+.btn{padding:6px 16px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#333;transition:all .15s;}
+.btn:hover{border-color:#4a90d9;color:#4a90d9;}
+.btn-primary{background:#4a90d9;color:#fff;border-color:#4a90d9;}
+.btn-primary:hover{background:#3a7bc8;color:#fff;}
+.btn-danger{color:#cf1322;border-color:#ffa39e;}
+.btn-danger:hover{background:#fff1f0;}
+.section{margin-bottom:24px;scroll-margin-top:64px;}
+.section-title{font-size:13px;font-weight:600;color:#333;padding-left:10px;border-left:3px solid #4a90d9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,#e8e8e8,transparent);}
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 20px;margin-bottom:16px;}
+.form-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.form-item{display:flex;flex-direction:column;gap:4px;}
+.form-item.span-2{grid-column:span 2;}
+.form-label{font-size:12px;color:#999;}
+.form-label .req{color:#ff4d4f;}
+.form-value{background:#f5f7fa;border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;font-size:12px;color:#333;min-height:32px;display:flex;align-items:center;}
+.form-value.tall{min-height:60px;align-items:flex-start;line-height:1.6;}
+textarea.form-input{width:100%;border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12px;min-height:80px;resize:vertical;outline:none;font-family:inherit;}
+textarea.form-input:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.1);}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{background:#f0f2f5;padding:8px 12px;text-align:left;font-size:12px;color:#666;font-weight:500;border-bottom:1px solid #e0e0e0;white-space:nowrap;}
+.data-table td{padding:8px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.data-table tr:hover td{background:#f8fafc;}
+.file-link{color:#4a90d9;cursor:pointer;font-size:11px;text-decoration:none;}
+.file-link:hover{text-decoration:underline;}
+.file-drop{border:1px dashed #d9d9d9;border-radius:6px;padding:20px;text-align:center;color:#999;font-size:12px;cursor:pointer;transition:all .15s;}
+.file-drop:hover{border-color:#4a90d9;background:#fafcff;}
+.file-drop .drop-icon{font-size:28px;color:#4a90d9;margin-bottom:4px;}
+.file-drop .drop-hint{font-size:11px;color:#bbb;margin-top:4px;}
+.text-link{color:#4a90d9;cursor:pointer;}
+.file-item{display:flex;align-items:center;gap:12px;padding:8px 12px;border:1px solid #f0f0f0;border-radius:4px;margin-bottom:6px;font-size:12px;}
+.file-item .fname{flex:1;color:#333;}
+.file-item .factions{display:flex;gap:8px;}
+.file-item .factions a{font-size:11px;color:#4a90d9;cursor:pointer;text-decoration:none;}
+.file-item .factions a:hover{text-decoration:underline;}
+.download-all{font-size:12px;color:#4a90d9;cursor:pointer;margin-top:6px;display:flex;align-items:center;gap:4px;}
+.download-all:hover{text-decoration:underline;}
+/* Discussion */
+.disc-item{padding:12px 0;border-bottom:1px solid #f0f0f0;}
+.disc-item:last-child{border-bottom:none;}
+.disc-meta{display:flex;gap:16px;font-size:12px;margin-bottom:6px;flex-wrap:wrap;}
+.disc-meta b{font-weight:600;color:#333;}
+.disc-meta span{color:#666;}
+.disc-content{font-size:12px;color:#555;line-height:1.7;}
+.disc-content b{font-weight:600;color:#333;}
+.disc-files{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;align-items:center;}
+.disc-files b{font-weight:600;color:#333;font-size:12px;}
+.comment-area{border:1px solid #e8e8e8;border-radius:4px;padding:16px;background:#fff;margin-top:16px;}
+.ca-label{font-size:12px;font-weight:600;color:#333;margin-bottom:8px;}
+.ca-hint{text-align:right;font-size:11px;color:#bbb;margin-top:4px;}
+.ca-upload-label{font-size:12px;font-weight:600;color:#333;margin:12px 0 8px;}
+.ca-footer{display:flex;justify-content:flex-end;margin-top:12px;}
+/* Modal */
+.modal-mask{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;justify-content:center;align-items:center;}
+.modal-mask.show{display:flex;}
+.modal{background:#fff;border-radius:8px;width:560px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e8e8e8;}
+.modal-header h3{font-size:15px;font-weight:600;color:#333;margin:0;}
+.modal-close{font-size:18px;color:#999;cursor:pointer;background:none;border:none;padding:0;line-height:1;}
+.modal-close:hover{color:#333;}
+.modal-body{padding:20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:8px;}
+.page-footer{position:fixed;bottom:0;left:160px;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:10px 24px;display:flex;justify-content:flex-end;gap:8px;box-shadow:0 -2px 8px rgba(0,0,0,.04);z-index:50;}
+.design-note{background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#ad6800;line-height:1.6;}
+.design-note strong{color:#874d00;}
+.char-count{font-size:11px;color:#bbb;}
+</style>
+
+<div class="page-wrap">
+  <nav class="anchor-nav" id="anchorNav">
+    <div id="nav-register" class="nav-group">
+      <a href="#sec-basic" class="active">Basic Information</a>
+      <a href="#sec-fault">Fault Information</a>
+      <a href="#sec-parts">Parts</a>
+      <a href="#sec-symptom">Fault Symptom</a>
+      <a href="#sec-ophistory">Operator History</a>
+      <a href="#sec-discussion">Discussion</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+
+    <div class="design-note"><strong>📐 Quality Report Detail</strong> — 单页面，审批按钮（Approve / Return / Reject）根据当前用户角色和单据状态动态显示在右上角。点击弹窗填写意见。Discussion 区域所有角色可用。</div>
+
+    <!-- Header -->
+    <div class="header-bar">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="qr-number">Quality Report No.: QRIFN20531F03001</div>
+          <span class="status-badge status-returned">Returned(HQ)</span>
+          <button class="btn-print" onclick="window.print()" title="Print">🖨️ Print</button>
+        </div>
+        <div class="org-info" style="margin-top:8px;margin-bottom:0;">
+          <div>Country/Region Name: <span>The Netherlands</span></div>
+          <div>Company SAP Code: <span>1F03</span></div>
+          <div>Company Name: <span>XPeng Motors(Netherlands) B.V.</span></div>
+          <div>Founder Organization: <span>XPeng Motors(Netherlands) B.V.</span></div>
+        </div>
+      </div>
+      <!-- 按钮根据角色/状态动态显示 -->
+      <div class="header-actions">
+        <button class="btn">Service History</button>
+        <button class="btn btn-primary" onclick="openModal('approve')">Approve</button>
+        <button class="btn" onclick="openModal('return')">Return</button>
+        <button class="btn btn-danger" onclick="openModal('reject')">Reject</button>
+        <button class="btn">Send to TQM</button>
+      </div>
+    </div>
+
+    <!-- Basic Information -->
+    <div class="section" id="sec-basic">
+      <div class="section-title">Basic Information</div>
+      <div class="form-grid">
+        <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">Repair1</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP04H6SNA00173</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">14613</div></div>
+        <div class="form-item"><div class="form-label">Model</div><div class="form-value">G6 Global Edition AWD Long Range</div></div>
+        <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2023-07-31</div></div>
+        <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">—</div></div>
+        <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">null or 100000km</div></div>
+        <div class="form-item"></div>
+      </div>
+    </div>
+
+    <!-- Fault Information -->
+    <div class="section" id="sec-fault">
+      <div class="section-title">Fault Information</div>
+      <div class="form-grid">
+        <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">t1test</div></div>
+        <div class="form-item" style="grid-column:span 2;"></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Major Faulty Part No.</div><div class="form-value">017ED1-00-01</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Major Faulty Part</div><div class="form-value">0</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Faulty Subsystem</div><div class="form-value">Rear-drive reducer assembly</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2025-05-31</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[C] Appearance and others</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Warranty Type</div><div class="form-value">Goodwill Warranty</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value">12121212121测试-411112</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">朱晓宇</div></div>
+        <div class="form-item"><div class="form-label">Applicant Phone</div><div class="form-value">32767</div></div>
+        <div class="form-item"><div class="form-label">Repair Finish Date</div><div class="form-value">—</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall">测试1</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall">测试1</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall">测试1</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Actions Taken</div><div class="form-value tall">测试1</div></div>
+      </div>
+    </div>
+
+    <!-- Parts -->
+    <div class="section" id="sec-parts">
+      <div class="section-title">Parts</div>
+      <div style="margin-bottom:8px;text-align:right;"><button class="btn btn-primary" style="font-size:11px;padding:4px 12px;">Add Part</button></div>
+      <table class="data-table">
+        <thead><tr><th>No.</th><th>Part No.</th><th>Part Name</th><th>Major Faulty Part</th><th>Faulty Subsystem</th><th>Quantity</th><th>Action</th></tr></thead>
+        <tbody><tr><td>1</td><td>000000SED1-00-01</td><td>SEAT_BOLT_CONSOLE</td><td>⭐ Primary</td><td>—</td><td>1</td><td><a class="file-link">Delete</a></td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Fault Symptom -->
+    <div class="section" id="sec-symptom">
+      <div class="section-title">Fault Symptom</div>
+      <div class="file-drop" style="margin-bottom:12px;">
+        <div class="drop-icon">⬆️</div>
+        <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+        <div class="drop-hint">Supported: jpg, jpeg, png, pdf</div>
+      </div>
+      <div class="file-item"><span class="fname">20250312-171866.mp3</span><div class="factions"><a>Preview</a><a>Download</a></div></div>
+      <div class="file-item"><span class="fname">modem1.jpg</span><div class="factions"><a>Preview</a><a>Download</a></div></div>
+      <div class="download-all">⬇ Download all files</div>
+    </div>
+
+    <!-- Operator History (倒序) -->
+    <div class="section" id="sec-ophistory">
+      <div class="section-title">Operator History</div>
+      <table class="data-table">
+        <thead><tr><th>No.</th><th>Operator</th><th>Operation Time</th><th>Approval Status</th><th>Comments</th></tr></thead>
+        <tbody>
+          <tr><td>3</td><td>朱晓宇</td><td>2026-03-19 10:08:25</td><td>Returned(HQ)</td><td>测试test</td></tr>
+          <tr><td>2</td><td>温润如</td><td>2026-03-19 06:56:24</td><td>Pending(HQ)</td><td>Submitted to HQ for approval</td></tr>
+          <tr><td>1</td><td>朱晓宇</td><td>2026-03-19 03:25:52</td><td>Pending(Region)</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Discussion -->
+    <div class="section" id="sec-discussion">
+      <div class="section-title">Discussion</div>
+      <div class="disc-item">
+        <div class="disc-meta">
+          <span><b>Commentator:</b> 朱晓宇</span>
+          <span><b>Role:</b> Service Store Manager (Dealer)</span>
+          <span><b>Comment time:</b> 2026-03-20 14:22:10</span>
+        </div>
+        <div class="disc-content"><b>Comments:</b> 已按退回意见修改，请重新审核。</div>
+      </div>
+      <div class="disc-item">
+        <div class="disc-meta">
+          <span><b>Commentator:</b> 温润如</span>
+          <span><b>Role:</b> Technical Manager (NSC)</span>
+          <span><b>Comment time:</b> 2026-03-19 11:30:45</span>
+        </div>
+        <div class="disc-content"><b>Comments:</b> 故障描述不够详细，请补充具体的 DTC 码和故障发生时的行驶条件。</div>
+      </div>
+      <div class="comment-area">
+        <div class="ca-label">Comments:</div>
+        <textarea class="form-input" placeholder="Please enter the supplementary explanation content" style="min-height:60px;"></textarea>
+        <div class="ca-hint">0/1000</div>
+        <div class="ca-upload-label">Attachment:</div>
+        <div class="file-drop">
+          <div class="drop-icon">⬆️</div>
+          <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+          <div class="drop-hint">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div>
+        </div>
+        <div class="ca-footer"><button class="btn">Add Comments</button></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="page-footer"><button class="btn">Edit</button></div>
+
+<!-- Approve Modal -->
+<div class="modal-mask" id="modal-approve">
+  <div class="modal">
+    <div class="modal-header"><h3>Approve</h3><button class="modal-close" onclick="closeModal('approve')">&times;</button></div>
+    <div class="modal-body">
+      <div class="ca-label" style="margin-bottom:8px;">Comments</div>
+      <textarea class="form-input" placeholder="Enter approval comments (optional)..." style="min-height:80px;"></textarea>
+      <div class="ca-hint">0/2000</div>
+      <div class="ca-upload-label">Attachment:</div>
+      <div class="file-drop"><div class="drop-icon">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div class="drop-hint">Supported: doc, docx, xls, xlsx, pdf, txt, jpg, png, mp4, rar, eml, jpeg</div></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('approve')">Cancel</button><button class="btn btn-primary">Confirm Approve</button></div>
+  </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal-mask" id="modal-return">
+  <div class="modal">
+    <div class="modal-header"><h3>Return</h3><button class="modal-close" onclick="closeModal('return')">&times;</button></div>
+    <div class="modal-body">
+      <div class="ca-label" style="margin-bottom:8px;"><span class="req">*</span> Comments</div>
+      <textarea class="form-input" placeholder="Please enter the reason for returning..." style="min-height:80px;"></textarea>
+      <div class="ca-hint">0/2000</div>
+      <div class="ca-upload-label">Attachment:</div>
+      <div class="file-drop"><div class="drop-icon">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div class="drop-hint">Supported: doc, docx, xls, xlsx, pdf, txt, jpg, png, mp4, rar, eml, jpeg</div></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('return')">Cancel</button><button class="btn" style="background:#faad14;color:#fff;border-color:#faad14;">Confirm Return</button></div>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-mask" id="modal-reject">
+  <div class="modal">
+    <div class="modal-header"><h3>Reject</h3><button class="modal-close" onclick="closeModal('reject')">&times;</button></div>
+    <div class="modal-body">
+      <div class="ca-label" style="margin-bottom:8px;"><span class="req">*</span> Comments</div>
+      <textarea class="form-input" placeholder="Please enter the reason for rejection..." style="min-height:80px;"></textarea>
+      <div class="ca-hint">0/2000</div>
+      <div class="ca-upload-label">Attachment:</div>
+      <div class="file-drop"><div class="drop-icon">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div class="drop-hint">Supported: doc, docx, xls, xlsx, pdf, txt, jpg, png, mp4, rar, eml, jpeg</div></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('reject')">Cancel</button><button class="btn btn-danger" style="background:#cf1322;color:#fff;">Confirm Reject</button></div>
+  </div>
+</div>
+
+<script>
+function openModal(t){document.getElementById('modal-'+t).classList.add('show');}
+function closeModal(t){document.getElementById('modal-'+t).classList.remove('show');}
+document.querySelectorAll('.modal-mask').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});});
+document.querySelectorAll('.anchor-nav a').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+const obs=new IntersectionObserver(entries=>{entries.forEach(en=>{if(en.isIntersecting){const id=en.target.id;document.querySelectorAll('.anchor-nav a').forEach(a=>{const h=a.getAttribute('href').replace('#','');a.classList.toggle('active',h===id);});}});},{rootMargin:'-80px 0px -60% 0px'});
+document.querySelectorAll('.section[id]').forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

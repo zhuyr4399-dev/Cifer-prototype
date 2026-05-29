@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TI / QR / PA Cross-Link Prototype</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;font-size:13px;color:#333;background:#f5f7fa;}
+.top-bar{height:48px;background:#fff;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #e8e8e8;position:fixed;top:0;left:0;right:0;z-index:100;}
+.top-bar .logo{display:flex;align-items:center;gap:8px;}
+.top-bar .logo-text{font-size:14px;font-weight:600;color:#333;}
+.top-bar .right-area{display:flex;align-items:center;gap:16px;margin-left:auto;}
+.top-bar .avatar{width:28px;height:28px;border-radius:50%;background:#ff7a45;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.top-bar .role-tag{font-size:11px;color:#4a90d9;background:#e6f0ff;padding:1px 6px;border-radius:3px;}
+.page-wrap{display:flex;margin-top:48px;min-height:calc(100vh - 48px);}
+.anchor-nav{width:160px;position:fixed;top:48px;left:0;bottom:0;background:#fff;border-right:1px solid #e8e8e8;padding:16px 0;overflow-y:auto;z-index:50;}
+.anchor-nav a{display:block;padding:8px 16px;font-size:12px;color:#666;text-decoration:none;border-left:3px solid transparent;transition:all .15s;line-height:1.5;}
+.anchor-nav a:hover{color:#4a90d9;background:#f5f9ff;}
+.anchor-nav a.active{color:#4a90d9;font-weight:500;border-left-color:#4a90d9;background:#e8f0fe;}
+.main-content{margin-left:160px;flex:1;padding:16px 24px 80px;max-width:1080px;}
+.page-switcher{display:flex;gap:0;margin-bottom:16px;}
+.sw-btn{padding:8px 20px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fafafa;color:#666;transition:all .15s;}
+.sw-btn:first-child{border-radius:4px 0 0 4px;}
+.sw-btn:last-child{border-radius:0 4px 4px 0;margin-left:-1px;}
+.sw-btn:nth-child(2){margin-left:-1px;}
+.sw-btn.active{background:#4a90d9;color:#fff;border-color:#4a90d9;z-index:1;position:relative;}
+.btn{padding:6px 16px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#333;transition:all .15s;}
+.btn:hover{border-color:#4a90d9;color:#4a90d9;}
+.btn-primary{background:#4a90d9;color:#fff;border-color:#4a90d9;}
+.btn-primary:hover{background:#3a7bc8;color:#fff;}
+.btn-sm{padding:3px 10px;font-size:11px;}
+.header-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.doc-number{font-size:15px;font-weight:600;color:#333;}
+.status-badge{display:inline-block;padding:3px 12px;border-radius:3px;font-size:12px;font-weight:500;margin-left:12px;}
+.status-draft{background:#f0f0f0;color:#666;border:1px solid #d9d9d9;}
+.org-info{display:flex;gap:24px;font-size:12px;color:#999;margin-bottom:16px;flex-wrap:wrap;}
+.org-info span{color:#333;}
+.section{margin-bottom:24px;scroll-margin-top:64px;}
+.section-title{font-size:13px;font-weight:600;color:#333;padding-left:10px;border-left:3px solid #4a90d9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,#e8e8e8,transparent);}
+.sub-title{font-size:12px;font-weight:500;color:#666;margin:16px 0 10px;padding-left:10px;border-left:2px solid #e8e8e8;}
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 20px;margin-bottom:16px;}
+.form-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.form-item{display:flex;flex-direction:column;gap:4px;}
+.form-item.span-2{grid-column:span 2;}
+.form-label{font-size:12px;color:#999;}
+.form-label .req{color:#ff4d4f;}
+.form-value{background:#f5f7fa;border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;font-size:12px;color:#333;min-height:32px;display:flex;align-items:center;}
+.form-value.editable{background:#fff;border-color:#d9d9d9;}
+.form-value.tall{min-height:60px;align-items:flex-start;line-height:1.6;}
+.form-value.empty{color:#bbb;}
+/* auto-filled */
+.filled{position:relative;background:#f6ffed !important;border-color:#b7eb8f !important;}
+.filled::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#52c41a;border-radius:4px 0 0 4px;}
+.src{font-size:9px;color:#52c41a;font-weight:500;margin-left:6px;white-space:nowrap;}
+/* select */
+.form-select{background:#fff;border:1px solid #d9d9d9;border-radius:4px;padding:6px 10px;font-size:12px;color:#333;min-height:32px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;position:relative;transition:all .15s;user-select:none;}
+.form-select:hover{border-color:#4a90d9;}
+.form-select .arrow{color:#999;font-size:10px;}
+.form-select .placeholder{color:#bbb;}
+.form-select.has-value{border-color:#4a90d9;background:#f0f7ff;}
+.form-select .sel-tag{background:#e6f0ff;color:#4a90d9;padding:2px 8px;border-radius:3px;font-size:11px;display:inline-flex;align-items:center;gap:6px;}
+.form-select .sel-close{cursor:pointer;font-size:14px;color:#999;line-height:1;}
+.form-select .sel-close:hover{color:#ff4d4f;}
+.dropdown-panel{display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1px solid #d9d9d9;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:20;max-height:220px;overflow-y:auto;}
+.dropdown-panel.show{display:block;}
+.dropdown-item{padding:8px 12px;font-size:12px;cursor:pointer;transition:background .1s;color:#333;}
+.dropdown-item:hover{background:#f0f7ff;}
+.dropdown-item.disabled{color:#ccc;cursor:not-allowed;background:#fafafa;font-style:italic;}
+.dropdown-item.disabled:hover{background:#fafafa;}
+/* NEW badge */
+.new-badge{position:relative;}
+.new-badge::before{content:'NEW';position:absolute;top:-8px;right:-4px;background:#ff4d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;z-index:5;}
+/* table */
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{background:#f0f2f5;padding:8px 12px;text-align:left;font-size:12px;color:#666;font-weight:500;border-bottom:1px solid #e0e0e0;white-space:nowrap;}
+.data-table td{padding:8px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.data-table tr:hover td{background:#f8fafc;}
+.data-table tr.filled-row td{background:#f6ffed;}
+/* file */
+.file-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.file-tag{display:inline-flex;align-items:center;gap:6px;background:#f5f7fa;border:1px solid #e0e0e0;border-radius:4px;padding:4px 10px;font-size:11px;}
+.file-tag.filled{background:#f6ffed;border-color:#b7eb8f;}
+.file-area{border:1px dashed #d9d9d9;border-radius:6px;padding:16px;text-align:center;color:#999;font-size:12px;cursor:pointer;transition:all .15s;margin-top:8px;}
+.file-area:hover{border-color:#4a90d9;background:#fafcff;}
+.text-link{color:#4a90d9;cursor:pointer;}
+/* footer */
+.page-footer{position:fixed;bottom:0;left:160px;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:10px 24px;display:flex;justify-content:flex-end;gap:8px;box-shadow:0 -2px 8px rgba(0,0,0,.04);z-index:50;}
+.page-view{display:none;}
+.page-view.active{display:block;}
+hr.sep{border:none;border-top:1px dashed #e0e0e0;margin:16px 0;}
+.parts-action{display:flex;justify-content:flex-end;margin-bottom:8px;gap:8px;}
+/* scenario tabs */
+.scenario-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid #d9d9d9;border-radius:6px;overflow:hidden;}
+.sc-tab{flex:1;padding:10px 12px;font-size:12px;cursor:pointer;background:#fafafa;color:#666;text-align:center;border-right:1px solid #d9d9d9;transition:all .15s;line-height:1.4;}
+.sc-tab:last-child{border-right:none;}
+.sc-tab.active{background:#4a90d9;color:#fff;}
+.scenario-view{display:none;}
+.scenario-view.active{display:block;}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="logo"><span style="font-size:18px;">🔶</span><span class="logo-text">Sales and Service</span></div>
+  <div class="right-area">
+    <span style="color:#666;">🔍</span><span style="color:#666;">⚙️</span><span style="color:#666;">🔔</span>
+    <div style="display:flex;align-items:center;gap:6px;"><div class="avatar">R</div><span style="font-size:12px;">Rado Peric</span><span class="role-tag">Technical Manager (NSC)</span></div>
+  </div>
+</div>
+
+<div class="page-wrap">
+<nav class="anchor-nav" id="anchorNav"></nav>
+<div class="main-content">
+<div class="page-switcher">
+  <div class="sw-btn active" onclick="switchPage('ti')">Technical Inquiry</div>
+  <div class="sw-btn" onclick="switchPage('qr')">Quality Report</div>
+  <div class="sw-btn" onclick="switchPage('pa')">Pre-Approval</div>
+</div>
+
+<!-- ==================== TI PAGE ==================== -->
+<div class="page-view active" id="page-ti">
+  <div class="scenario-tabs">
+    <div class="sc-tab active" onclick="switchSc('ti',1)">① 未关联</div>
+    <div class="sc-tab" onclick="switchSc('ti',2)">② 关联 QR 后</div>
+  </div>
+  <div class="header-bar"><div style="display:flex;align-items:center;gap:12px;"><div class="doc-number">Technical Inquiry No.: —</div><span class="status-badge status-draft">Draft</span></div></div>
+  <div class="org-info"><div>Founder Organization Code: <span>AFDK1001</span></div><div>Founder Organization: <span>XPENG Service Odense</span></div><div>SAP Code: <span>4003306</span></div><div>Company: <span>Ejner Hessel A/S(Odense)</span></div></div>
+
+  <div class="section" id="ti-basic">
+    <div class="section-title">Basic Information</div>
+    <div class="form-grid">
+      <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">—</div></div>
+      <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value editable" style="border-color:#4a90d9;">LTNSP64J1TB004385</div></div>
+      <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">12,580</div></div>
+      <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+      <div class="form-item"><div class="form-label">Exterior Color</div><div class="form-value">Graphite Gray</div></div>
+      <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2025-08-15</div></div>
+      <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">2025-09-01</div></div>
+      <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">2028-09-01</div></div>
+    </div>
+  </div>
+
+  <div class="section" id="ti-fault">
+    <div class="section-title">Fault Information</div>
+
+    <!-- TI Scenario 1: 未关联 -->
+    <div class="scenario-view active" id="ti-sc-1">
+      <div class="form-grid cols-2" style="margin-bottom:16px;">
+        <div class="form-item new-badge"><div class="form-label">Pre-Approval No.</div>
+          <div class="form-select" onclick="toggleDd(this)"><span class="placeholder">— Select —</span><span class="arrow">▼</span>
+            <div class="dropdown-panel"><div class="dropdown-item">PA-AFDK1001-260301001</div><div class="dropdown-item">PA-AFDK1001-260315002</div><div class="dropdown-item disabled">PA-AFDK1001-260320003 (Draft)</div></div>
+          </div>
+        </div>
+        <div class="form-item new-badge"><div class="form-label">Quality Report No.</div>
+          <div class="form-select" onclick="toggleDd(this)"><span class="placeholder">— Select —</span><span class="arrow">▼</span>
+            <div class="dropdown-panel"><div class="dropdown-item">QR-AFDK1001-260228001</div><div class="dropdown-item">QR-AFDK1001-260310002</div><div class="dropdown-item disabled">QR-AFDK1001-260401003 (Draft)</div></div>
+          </div>
+        </div>
+      </div>
+      <hr class="sep">
+      <div class="form-grid">
+        <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value editable empty">Please enter...</div></div>
+        <div class="form-item" style="grid-column:span 2;"></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Sub-system</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> VOR Case</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall editable empty">Please enter...</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall editable empty">Please enter...</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall editable empty">Please enter...</div></div>
+        <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall editable empty">Please enter...</div></div>
+      </div>
+      <div style="margin-top:12px;"><div class="form-label" style="margin-bottom:8px;">Fault Symptom / Attachment</div>
+        <div class="file-area"><div style="font-size:24px;color:#4a90d9;margin-bottom:4px;">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div style="font-size:11px;color:#bbb;margin-top:4px;">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div></div>
+      </div>
+    </div>
+
+    <!-- TI Scenario 2: 关联 QR 后 -->
+    <div class="scenario-view" id="ti-sc-2">
+      <div class="form-grid cols-2" style="margin-bottom:16px;">
+        <div class="form-item new-badge"><div class="form-label">Pre-Approval No.</div>
+          <div class="form-select"><span class="placeholder">— Select —</span><span class="arrow">▼</span></div>
+        </div>
+        <div class="form-item new-badge"><div class="form-label">Quality Report No.</div>
+          <div class="form-select has-value"><span class="sel-tag">QR-AFDK1001-260228001 <span class="sel-close">✕</span></span><span class="arrow">▼</span></div>
+        </div>
+      </div>
+      <hr class="sep">
+      <div class="form-grid">
+        <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value filled">Steering wheel vibration at high speed<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item" style="grid-column:span 2;"></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value filled">[B] General malfunction<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value filled">Steering vibration-201556<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value filled">2026-02-28 14:30<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Sub-system</div><div class="form-value editable">Chassis</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> VOR Case</div><div class="form-value editable">No</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall filled">Customer reports steering wheel shakes noticeably when driving above 120 km/h on highway. Issue started approximately 2 weeks ago.<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall filled">Confirmed vibration at 120+ km/h. Tire balance checked — within spec. Suspected front wheel bearing or CV joint issue.<span class="src">⚡ from QR</span></div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall filled">Front left wheel bearing shows excessive play (0.15mm, spec max 0.05mm). Root cause identified as premature bearing wear.<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall filled">Replaced front left wheel bearing assembly. Test drive confirmed vibration resolved.<span class="src">⚡ from QR</span></div></div>
+      </div>
+      <div style="margin-top:12px;"><div class="form-label" style="margin-bottom:8px;">Fault Symptom / Attachment</div>
+        <div class="file-list">
+          <div class="file-tag filled">🎬 steering_vibration_video.mp4<span class="src">⚡ from QR</span></div>
+          <div class="file-tag filled">📄 bearing_inspection_report.pdf<span class="src">⚡ from QR</span></div>
+        </div>
+        <div class="file-area"><div style="font-size:24px;color:#4a90d9;margin-bottom:4px;">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div style="font-size:11px;color:#bbb;margin-top:4px;">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="ti-history">
+    <div class="section-title">Approval History</div>
+    <table class="data-table"><thead><tr><th>No.</th><th>Operator</th><th>Role</th><th>Time</th><th>Status</th><th>Comments</th><th>Files</th></tr></thead>
+    <tbody><tr><td colspan="7" style="text-align:center;color:#bbb;padding:20px;">No history yet</td></tr></tbody></table>
+  </div>
+</div>
+
+<!-- ==================== QR PAGE ==================== -->
+<div class="page-view" id="page-qr">
+  <div class="scenario-tabs">
+    <div class="sc-tab active" onclick="switchSc('qr',1)">① 未关联</div>
+    <div class="sc-tab" onclick="switchSc('qr',2)">② 关联 PA 后（含 Parts 填充）</div>
+  </div>
+  <div class="header-bar"><div style="display:flex;align-items:center;gap:12px;"><div class="doc-number">Quality Report No.: —</div><span class="status-badge status-draft">Draft</span></div></div>
+  <div class="org-info"><div>Founder Organization Code: <span>AFDK1001</span></div><div>Founder Organization: <span>XPENG Service Odense</span></div><div>SAP Code: <span>4003306</span></div><div>Company: <span>Ejner Hessel A/S(Odense)</span></div></div>
+
+  <div class="section" id="qr-basic">
+    <div class="section-title">Basic Information</div>
+    <div class="form-grid">
+      <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">JO-260228-001</div></div>
+      <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value editable" style="border-color:#4a90d9;">LTNSP64J1TB004385</div></div>
+      <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">12,580</div></div>
+      <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+      <div class="form-item"><div class="form-label">Exterior Color</div><div class="form-value">Graphite Gray</div></div>
+      <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2025-08-15</div></div>
+      <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">2025-09-01</div></div>
+      <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">2028-09-01</div></div>
+    </div>
+  </div>
+
+  <div class="section" id="qr-fault">
+    <div class="section-title">Fault Information</div>
+
+    <!-- QR Scenario 1 -->
+    <div class="scenario-view active" id="qr-sc-1">
+      <div class="form-grid cols-2" style="margin-bottom:16px;">
+        <div class="form-item new-badge"><div class="form-label">Technical Inquiry No.</div>
+          <div class="form-select" onclick="toggleDd(this)"><span class="placeholder">— Select —</span><span class="arrow">▼</span>
+            <div class="dropdown-panel"><div class="dropdown-item">TI-AFDK1001-260301005</div><div class="dropdown-item">TI-AFDK1001-260215003</div><div class="dropdown-item disabled">TI-AFDK1001-260401008 (Draft)</div></div>
+          </div>
+        </div>
+        <div class="form-item new-badge"><div class="form-label">Pre-Approval No.</div>
+          <div class="form-select" onclick="toggleDd(this)"><span class="placeholder">— Select —</span><span class="arrow">▼</span>
+            <div class="dropdown-panel"><div class="dropdown-item">PA-AFDK1001-260301001</div><div class="dropdown-item">PA-AFDK1001-260315002</div><div class="dropdown-item disabled">PA-AFDK1001-260320003 (Draft)</div></div>
+          </div>
+        </div>
+      </div>
+      <hr class="sep">
+      <div class="form-grid">
+        <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value editable empty">Please enter...</div></div>
+        <div class="form-item" style="grid-column:span 2;"></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall editable empty">Please enter...</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall editable empty">Please enter...</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall editable empty">Please enter...</div></div>
+        <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall editable empty">Please enter...</div></div>
+      </div>
+      <div style="margin-top:12px;"><div class="form-label" style="margin-bottom:8px;">Fault Symptom / Attachment</div>
+        <div class="file-area"><div style="font-size:24px;color:#4a90d9;margin-bottom:4px;">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div style="font-size:11px;color:#bbb;margin-top:4px;">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div></div>
+      </div>
+    </div>
+
+    <!-- QR Scenario 2: 关联 PA -->
+    <div class="scenario-view" id="qr-sc-2">
+      <div class="form-grid cols-2" style="margin-bottom:16px;">
+        <div class="form-item new-badge"><div class="form-label">Technical Inquiry No.</div>
+          <div class="form-select"><span class="placeholder">— Select —</span><span class="arrow">▼</span></div>
+        </div>
+        <div class="form-item new-badge"><div class="form-label">Pre-Approval No.</div>
+          <div class="form-select has-value"><span class="sel-tag">PA-AFDK1001-260301001 <span class="sel-close">✕</span></span><span class="arrow">▼</span></div>
+        </div>
+      </div>
+      <hr class="sep">
+      <div class="form-grid">
+        <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value filled">Steering wheel vibration at high speed<span class="src">⚡ from PA</span></div></div>
+        <div class="form-item" style="grid-column:span 2;"></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value filled">[B] General malfunction<span class="src">⚡ from PA</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value filled">Steering vibration-201556<span class="src">⚡ from PA</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value filled">2026-02-28 14:30<span class="src">⚡ from PA</span></div></div>
+        <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall filled">Customer reports steering wheel shakes noticeably when driving above 120 km/h on highway. Issue started approximately 2 weeks ago.<span class="src">⚡ from PA</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall filled">Confirmed vibration at 120+ km/h. Tire balance checked — within spec. Suspected front wheel bearing or CV joint issue.<span class="src">⚡ from PA</span></div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall filled">Front left wheel bearing shows excessive play (0.15mm, spec max 0.05mm). Root cause identified as premature bearing wear.<span class="src">⚡ from PA</span></div></div>
+        <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall filled">Replaced front left wheel bearing assembly. Test drive confirmed vibration resolved.<span class="src">⚡ from PA</span></div></div>
+      </div>
+      <div style="margin-top:12px;"><div class="form-label" style="margin-bottom:8px;">Fault Symptom / Attachment</div>
+        <div class="file-list">
+          <div class="file-tag filled">🎬 steering_vibration_video.mp4<span class="src">⚡ from PA</span></div>
+          <div class="file-tag filled">📄 bearing_inspection_report.pdf<span class="src">⚡ from PA</span></div>
+        </div>
+        <div class="file-area"><div style="font-size:24px;color:#4a90d9;margin-bottom:4px;">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div style="font-size:11px;color:#bbb;margin-top:4px;">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Parts -->
+  <div class="section" id="qr-parts">
+    <div class="section-title">Parts List</div>
+    <div class="scenario-view active" id="qr-parts-sc-1">
+      <div class="parts-action"><button class="btn btn-sm">Delete</button><button class="btn btn-sm btn-primary">Add Parts</button></div>
+      <table class="data-table"><thead><tr><th><input type="checkbox"></th><th>No.</th><th>Part No.</th><th>Part Name</th><th>Fault Position</th><th>Quantity</th><th>Main Fault Part</th><th>Op</th></tr></thead>
+      <tbody><tr><td colspan="8" style="text-align:center;color:#bbb;padding:20px;">No parts added</td></tr></tbody></table>
+    </div>
+    <div class="scenario-view" id="qr-parts-sc-2">
+      <div class="parts-action"><button class="btn btn-sm">Delete</button><button class="btn btn-sm btn-primary">Add Parts</button></div>
+      <table class="data-table"><thead><tr><th><input type="checkbox"></th><th>No.</th><th>Part No.</th><th>Part Name</th><th>Fault Position</th><th>Quantity</th><th>Main Fault Part</th><th>Op</th></tr></thead>
+      <tbody>
+        <tr class="filled-row"><td><input type="checkbox"></td><td>1</td><td>31340-CGA00<span class="src">⚡</span></td><td>Front Wheel Bearing Assy LH<span class="src">⚡</span></td><td>Front Axle - Left</td><td>1<span class="src">⚡</span></td><td><input type="radio" name="qr-mfp" checked> ✓</td><td><span class="text-link">Delete</span></td></tr>
+        <tr class="filled-row"><td><input type="checkbox"></td><td>2</td><td>04422-CGA00<span class="src">⚡</span></td><td>Front Wheel Hub Seal<span class="src">⚡</span></td><td>Front Axle - Left</td><td>1<span class="src">⚡</span></td><td><input type="radio" name="qr-mfp"></td><td><span class="text-link">Delete</span></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <div class="section" id="qr-history">
+    <div class="section-title">Approval History</div>
+    <table class="data-table"><thead><tr><th>No.</th><th>Operator</th><th>Role</th><th>Time</th><th>Status</th><th>Comments</th><th>Files</th></tr></thead>
+    <tbody><tr><td colspan="7" style="text-align:center;color:#bbb;padding:20px;">No history yet</td></tr></tbody></table>
+  </div>
+</div>
+
+<!-- ==================== PA PAGE ==================== -->
+<div class="page-view" id="page-pa">
+  <div class="scenario-tabs">
+    <div class="sc-tab active" onclick="switchSc('pa',1)">① 未关联</div>
+    <div class="sc-tab" onclick="switchSc('pa',2)">② 关联 QR 后（含 Parts 填充）</div>
+  </div>
+  <div class="header-bar"><div style="display:flex;align-items:center;gap:12px;"><div class="doc-number">Pre-Approval No.: —</div><span class="status-badge status-draft">Draft</span></div></div>
+  <div class="org-info"><div>Country Name: <span>Denmark</span></div><div>Company Name: <span>Ejner Hessel A/S(Odense)</span></div><div>Founder Organization: <span>XPENG Service Odense</span></div><div>SAP Code: <span>4003306</span></div></div>
+
+  <div class="section" id="pa-main">
+    <div class="section-title">Main Information</div>
+    <div class="sub-title">Basic Information</div>
+    <div class="form-grid">
+      <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value editable" style="border-color:#4a90d9;">LTNSP64J1TB004385</div></div>
+      <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">JO-260228-001</div></div>
+      <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">12,580</div></div>
+      <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+      <div class="form-item"><div class="form-label">Exterior Color</div><div class="form-value">Graphite Gray</div></div>
+      <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2025-08-15</div></div>
+      <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">2025-09-01</div></div>
+      <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">2028-09-01</div></div>
+    </div>
+
+    <div class="sub-title">Fault Information</div>
+
+    <!-- PA Scenario 1 -->
+    <div class="scenario-view active" id="pa-sc-1">
+      <div class="form-grid cols-2" style="margin-bottom:16px;">
+        <div class="form-item new-badge"><div class="form-label">Technical Inquiry No.</div>
+          <div class="form-select" onclick="toggleDd(this)"><span class="placeholder">— Select —</span><span class="arrow">▼</span>
+            <div class="dropdown-panel"><div class="dropdown-item">TI-AFDK1001-260301005</div><div class="dropdown-item">TI-AFDK1001-260215003</div><div class="dropdown-item disabled">TI-AFDK1001-260401008 (Draft)</div></div>
+          </div>
+        </div>
+        <div class="form-item new-badge"><div class="form-label">Quality Report No.</div>
+          <div class="form-select" onclick="toggleDd(this)"><span class="placeholder">— Select —</span><span class="arrow">▼</span>
+            <div class="dropdown-panel"><div class="dropdown-item">QR-AFDK1001-260228001</div><div class="dropdown-item">QR-AFDK1001-260310002</div><div class="dropdown-item disabled">QR-AFDK1001-260401003 (Draft)</div></div>
+          </div>
+        </div>
+      </div>
+      <hr class="sep">
+      <div class="form-grid">
+        <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value editable empty">Please enter...</div></div>
+        <div class="form-item" style="grid-column:span 2;"></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Warranty Type</div><div class="form-value editable empty">— Select —</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+      </div>
+    </div>
+
+    <!-- PA Scenario 2: 关联 QR -->
+    <div class="scenario-view" id="pa-sc-2">
+      <div class="form-grid cols-2" style="margin-bottom:16px;">
+        <div class="form-item new-badge"><div class="form-label">Technical Inquiry No.</div>
+          <div class="form-select"><span class="placeholder">— Select —</span><span class="arrow">▼</span></div>
+        </div>
+        <div class="form-item new-badge"><div class="form-label">Quality Report No.</div>
+          <div class="form-select has-value"><span class="sel-tag">QR-AFDK1001-260228001 <span class="sel-close">✕</span></span><span class="arrow">▼</span></div>
+        </div>
+      </div>
+      <hr class="sep">
+      <div class="form-grid">
+        <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value filled">Steering wheel vibration at high speed<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item" style="grid-column:span 2;"></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value filled">[B] General malfunction<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value filled">Steering vibration-201556<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value filled">2026-02-28 14:30<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Warranty Type</div><div class="form-value editable">Standard Warranty</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PA Fault Symptom -->
+  <div class="section" id="pa-symptom">
+    <div class="section-title">Fault Symptom</div>
+    <div class="scenario-view active" id="pa-sym-sc-1">
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall editable empty">Please enter...</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall editable empty">Please enter...</div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall editable empty">Please enter...</div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Actions Taken</div><div class="form-value tall editable empty">Please enter...</div></div>
+      </div>
+      <div style="margin-top:12px;"><div class="form-label" style="margin-bottom:8px;">Attachment</div>
+        <div class="file-area"><div style="font-size:24px;color:#4a90d9;margin-bottom:4px;">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div style="font-size:11px;color:#bbb;margin-top:4px;">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div></div>
+      </div>
+    </div>
+    <div class="scenario-view" id="pa-sym-sc-2">
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall filled">Customer reports steering wheel shakes noticeably when driving above 120 km/h on highway. Issue started approximately 2 weeks ago.<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall filled">Confirmed vibration at 120+ km/h. Tire balance checked — within spec. Suspected front wheel bearing or CV joint issue.<span class="src">⚡ from QR</span></div></div>
+      </div>
+      <div class="form-grid cols-2">
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall filled">Front left wheel bearing shows excessive play (0.15mm, spec max 0.05mm). Root cause identified as premature bearing wear.<span class="src">⚡ from QR</span></div></div>
+        <div class="form-item"><div class="form-label"><span class="req">*</span> Actions Taken</div><div class="form-value tall filled">Replaced front left wheel bearing assembly. Test drive confirmed vibration resolved.<span class="src">⚡ from QR</span></div></div>
+      </div>
+      <div style="margin-top:12px;"><div class="form-label" style="margin-bottom:8px;">Attachment</div>
+        <div class="file-list">
+          <div class="file-tag filled">🎬 steering_vibration_video.mp4<span class="src">⚡ from QR</span></div>
+          <div class="file-tag filled">📄 bearing_inspection_report.pdf<span class="src">⚡ from QR</span></div>
+        </div>
+        <div class="file-area"><div style="font-size:24px;color:#4a90d9;margin-bottom:4px;">⬆️</div><div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div><div style="font-size:11px;color:#bbb;margin-top:4px;">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PA Detail Info -->
+  <div class="section" id="pa-detail">
+    <div class="section-title">Detail Information</div>
+    <div class="sub-title">Parts</div>
+    <div class="scenario-view active" id="pa-parts-sc-1">
+      <div class="parts-action"><button class="btn btn-sm">Delete</button><button class="btn btn-sm btn-primary">Add Parts</button></div>
+      <table class="data-table"><thead><tr><th><input type="checkbox"></th><th>Part Code</th><th>Part Name</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
+      <tbody><tr><td colspan="6" style="text-align:center;color:#bbb;padding:20px;">No parts added</td></tr></tbody></table>
+    </div>
+    <div class="scenario-view" id="pa-parts-sc-2">
+      <div class="parts-action"><button class="btn btn-sm">Delete</button><button class="btn btn-sm btn-primary">Add Parts</button></div>
+      <table class="data-table"><thead><tr><th><input type="checkbox"></th><th>Part Code</th><th>Part Name</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
+      <tbody>
+        <tr class="filled-row"><td><input type="checkbox"></td><td>31340-CGA00<span class="src">⚡</span></td><td>Front Wheel Bearing Assy LH<span class="src">⚡</span></td><td>1<span class="src">⚡</span></td><td>€ 185.00</td><td>€ 185.00</td></tr>
+        <tr class="filled-row"><td><input type="checkbox"></td><td>04422-CGA00<span class="src">⚡</span></td><td>Front Wheel Hub Seal<span class="src">⚡</span></td><td>1<span class="src">⚡</span></td><td>€ 12.50</td><td>€ 12.50</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="sub-title" style="margin-top:20px;">Labours</div>
+    <div class="parts-action"><button class="btn btn-sm">Delete</button><button class="btn btn-sm btn-primary">Add Labours</button></div>
+    <table class="data-table"><thead><tr><th><input type="checkbox"></th><th>Labour Code</th><th>Repair Content</th><th>Labour Hours</th><th>Unit Price</th><th>Total</th></tr></thead>
+    <tbody><tr><td colspan="6" style="text-align:center;color:#bbb;padding:16px;">No labour items</td></tr></tbody></table>
+
+    <div class="sub-title" style="margin-top:20px;">Other Items</div>
+    <div class="parts-action"><button class="btn btn-sm">Delete</button><button class="btn btn-sm btn-primary">Add Other Items</button></div>
+    <table class="data-table"><thead><tr><th><input type="checkbox"></th><th>Other Fee Code</th><th>Other Fee Name</th><th>Amount (Ex.VAT)</th><th>Remark</th></tr></thead>
+    <tbody><tr><td colspan="5" style="text-align:center;color:#bbb;padding:16px;">No other items</td></tr></tbody></table>
+  </div>
+
+  <div class="section" id="pa-history">
+    <div class="section-title">Operator History</div>
+    <table class="data-table"><thead><tr><th>No.</th><th>Operator</th><th>Role</th><th>Time</th><th>Status</th><th>Comments</th></tr></thead>
+    <tbody><tr><td colspan="6" style="text-align:center;color:#bbb;padding:20px;">No history yet</td></tr></tbody></table>
+  </div>
+</div>
+
+</div><!-- main-content -->
+</div><!-- page-wrap -->
+
+<div class="page-footer">
+  <button class="btn">Save as Draft</button>
+  <button class="btn btn-primary">Save & Submit</button>
+</div>
+
+<script>
+function switchPage(p){
+  document.querySelectorAll('.page-view').forEach(e=>e.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.sw-btn').forEach((e,i)=>e.classList.toggle('active',i==={ti:0,qr:1,pa:2}[p]));
+  var nm={ti:[['#ti-basic','Basic Information'],['#ti-fault','Fault Information'],['#ti-history','Approval History']],qr:[['#qr-basic','Basic Information'],['#qr-fault','Fault Information'],['#qr-parts','Parts List'],['#qr-history','Approval History']],pa:[['#pa-main','Main Information'],['#pa-symptom','Fault Symptom'],['#pa-detail','Detail Information'],['#pa-history','Operator History']]};
+  var nav=document.getElementById('anchorNav');
+  nav.innerHTML=nm[p].map(function(x,i){return '<a href="'+x[0]+'" class="'+(i===0?'active':'')+'">'+x[1]+'</a>';}).join('');
+  nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+  switchSc(p,1);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function switchSc(page,num){
+  var tabs=document.querySelectorAll('#page-'+page+' .sc-tab');
+  tabs.forEach(function(t,i){t.classList.toggle('active',i===num-1);});
+  for(var i=1;i<=3;i++){var el=document.getElementById(page+'-sc-'+i);if(el)el.classList.toggle('active',i===num);}
+  if(page==='qr'){for(var i=1;i<=3;i++){var el=document.getElementById('qr-parts-sc-'+i);if(el)el.classList.toggle('active',i===num);}}
+  if(page==='pa'){for(var i=1;i<=3;i++){var s=document.getElementById('pa-sym-sc-'+i);if(s)s.classList.toggle('active',i===num);var p2=document.getElementById('pa-parts-sc-'+i);if(p2)p2.classList.toggle('active',i===num);}}
+}
+function toggleDd(el){var p=el.querySelector('.dropdown-panel');if(!p)return;var s=p.classList.contains('show');document.querySelectorAll('.dropdown-panel').forEach(function(x){x.classList.remove('show');});if(!s)p.classList.add('show');}
+document.addEventListener('click',function(e){if(!e.target.closest('.form-select'))document.querySelectorAll('.dropdown-panel').forEach(function(x){x.classList.remove('show');});});
+switchPage('ti');
+var obs=new IntersectionObserver(function(entries){entries.forEach(function(en){if(en.isIntersecting)document.querySelectorAll('.anchor-nav a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+en.target.id);});});},{rootMargin:'-80px 0px -60% 0px'});
+document.querySelectorAll('.section[id]').forEach(function(s){obs.observe(s);});
+</script>
+</body>
+</html>

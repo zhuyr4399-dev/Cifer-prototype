@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提交结算 - 未修项反馈原因</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; font-size:13px; color:#333; background:#e8e8e8; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+.overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:100; display:flex; align-items:center; justify-content:center; }
+.dialog { background:#fff; border-radius:6px; width:680px; box-shadow:0 4px 20px rgba(0,0,0,0.15); max-height:80vh; display:flex; flex-direction:column; }
+.dialog-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid #f0f0f0; flex-shrink:0; }
+.dialog-header .title { font-size:15px; font-weight:600; }
+.dialog-header .close { font-size:18px; color:#999; cursor:pointer; }
+.dialog-body { padding:0; overflow-y:auto; flex:1; }
+.dialog-footer { padding:12px 20px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #f0f0f0; flex-shrink:0; }
+
+/* 提示条 */
+.tip-bar { background:#fff7e6; border-bottom:1px solid #ffd591; padding:10px 20px; font-size:12px; color:#ad8b00; display:flex; align-items:center; gap:6px; }
+
+/* 表格 */
+table { width:100%; border-collapse:collapse; }
+th { background:#fafafa; padding:10px 12px; text-align:left; font-size:12px; color:#666; font-weight:500; border-bottom:1px solid #f0f0f0; position:sticky; top:0; z-index:1; }
+td { padding:10px 12px; font-size:13px; color:#333; border-bottom:1px solid #f5f5f5; vertical-align:middle; }
+
+/* 标签 */
+.tag { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; }
+.tag-red { background:#fff1f0; color:#ff4d4f; }
+.tag-orange { background:#fff7e6; color:#d46b08; }
+.tag-blue { background:#e6f7ff; color:#1890ff; }
+
+/* 表单 */
+select { width:100%; border:1px solid #d9d9d9; border-radius:4px; padding:5px 8px; font-size:12px; }
+select.error { border-color:#ff4d4f; }
+.error-text { font-size:11px; color:#ff4d4f; margin-top:2px; }
+
+/* 按钮 */
+.btn { padding:6px 16px; border-radius:4px; font-size:13px; cursor:pointer; border:1px solid #d9d9d9; background:#fff; color:#333; }
+.btn:hover { border-color:#1890ff; color:#1890ff; }
+.btn-primary { background:#1890ff; color:#fff; border-color:#1890ff; }
+.btn-primary:hover { background:#40a9ff; }
+.btn-primary:disabled { background:#d9d9d9; border-color:#d9d9d9; color:#fff; cursor:not-allowed; }
+
+/* 状态 */
+.status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; }
+.status-dot.red { background:#ff4d4f; }
+</style>
+</head>
+<body>
+
+<!-- SA提交结算时弹出的未修项反馈弹窗 -->
+<div class="overlay" id="feedbackDialog">
+  <div class="dialog">
+    <div class="dialog-header">
+      <span class="title">未修项反馈确认</span>
+      <span class="close" onclick="document.getElementById('feedbackDialog').style.display='none'">✕</span>
+    </div>
+
+    <div class="tip-bar">
+      ⚠️ 本次施工存在 <strong>3</strong> 项未施工的推荐项目，请逐项确认不修原因后方可提交结算。
+    </div>
+
+    <!-- 批量选择原因 -->
+    <div style="padding:10px 20px; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:10px; background:#fafafa;">
+      <span style="font-size:12px; color:#666;">批量填充不修原因：</span>
+      <select id="batchReasonSelect" style="border:1px solid #d9d9d9; border-radius:4px; padding:5px 8px; font-size:12px; min-width:160px;" onchange="applyBatchReason()">
+        <option value="">请选择</option>
+        <option>客户认为暂不需要</option>
+        <option>客户预算不足</option>
+        <option>客户计划下次处理</option>
+        <option>客户已在外部处理</option>
+        <option>其他</option>
+      </select>
+    </div>
+
+    <div class="dialog-body">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:30px;">序号</th>
+            <th>保养项目</th>
+            <th>来源</th>
+            <th style="width:200px;"><span style="color:#ff4d4f;">*</span> 不修原因</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><span class="status-dot red"></span>空调滤芯更换</td>
+            <td><span class="tag tag-orange">已过期</span></td>
+            <td>
+              <select id="reason1" onchange="checkAllFilled()">
+                <option value="">请选择</option>
+                <option>客户认为暂不需要</option>
+                <option>客户预算不足</option>
+                <option>客户计划下次处理</option>
+                <option>客户已在外部处理</option>
+                <option>其他</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><span class="status-dot red"></span>电驱润滑油更换</td>
+            <td><span class="tag tag-orange">即将到期</span></td>
+            <td>
+              <select id="reason2" onchange="checkAllFilled()">
+                <option value="">请选择</option>
+                <option>客户认为暂不需要</option>
+                <option>客户预算不足</option>
+                <option>客户计划下次处理</option>
+                <option>客户已在外部处理</option>
+                <option>其他</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><span class="status-dot red"></span>制动液更换</td>
+            <td><span class="tag tag-blue">上次未修</span></td>
+            <td>
+              <select id="reason3" onchange="checkAllFilled()">
+                <option value="">请选择</option>
+                <option>客户认为暂不需要</option>
+                <option>客户预算不足</option>
+                <option>客户计划下次处理</option>
+                <option>客户已在外部处理</option>
+                <option>其他</option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="dialog-footer">
+      <button class="btn" onclick="document.getElementById('feedbackDialog').style.display='none'">取消</button>
+      <button class="btn btn-primary" id="submitBtn" disabled onclick="submitFeedback()">确认并提交结算</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function checkAllFilled() {
+  var r1 = document.getElementById('reason1').value;
+  var r2 = document.getElementById('reason2').value;
+  var r3 = document.getElementById('reason3').value;
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = !(r1 && r2 && r3);
+}
+
+function applyBatchReason() {
+  var reason = document.getElementById('batchReasonSelect').value;
+  if (!reason) return;
+  document.getElementById('reason1').value = reason;
+  document.getElementById('reason2').value = reason;
+  document.getElementById('reason3').value = reason;
+  checkAllFilled();
+}
+
+function submitFeedback() {
+  document.getElementById('feedbackDialog').style.display = 'none';
+  alert('反馈已提交，结算提交成功');
+}
+</script>
+
+</body>
+</html>

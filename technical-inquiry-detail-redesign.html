@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Inquiry Detail - Redesign</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;font-size:13px;color:#333;background:#f5f7fa;}
+
+/* Top Bar */
+.top-bar{height:48px;background:#fff;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #e8e8e8;position:fixed;top:0;left:0;right:0;z-index:100;}
+.top-bar .logo{display:flex;align-items:center;gap:8px;margin-right:24px;}
+.top-bar .logo-text{font-size:14px;font-weight:600;color:#333;}
+.top-bar .right-area{display:flex;align-items:center;gap:16px;margin-left:auto;}
+.top-bar .badge{background:#ff4d4f;color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;position:relative;top:-6px;left:-4px;}
+.top-bar .avatar{width:28px;height:28px;border-radius:50%;background:#ff7a45;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.top-bar .role-tag{font-size:11px;color:#4a90d9;background:#e6f0ff;padding:1px 6px;border-radius:3px;}
+
+/* Layout */
+.page-wrap{display:flex;margin-top:48px;min-height:calc(100vh - 48px);}
+
+/* Left Nav */
+.anchor-nav{width:160px;position:fixed;top:48px;left:0;bottom:0;background:#fff;border-right:1px solid #e8e8e8;padding:16px 0;overflow-y:auto;z-index:50;}
+.anchor-nav a{display:block;padding:8px 16px;font-size:12px;color:#666;text-decoration:none;border-left:3px solid transparent;transition:all .15s;line-height:1.5;}
+.anchor-nav a:hover{color:#4a90d9;background:#f5f9ff;}
+.anchor-nav a.active{color:#4a90d9;font-weight:500;border-left-color:#4a90d9;background:#e8f0fe;}
+
+/* Main */
+.main-content{margin-left:160px;flex:1;padding:16px 24px 80px;max-width:1060px;}
+
+/* Page Switcher */
+.page-switcher{display:flex;gap:0;margin-bottom:16px;}
+.sw-btn{padding:8px 20px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fafafa;color:#666;}
+.sw-btn:first-child{border-radius:4px 0 0 4px;}
+.sw-btn:last-child{border-radius:0 4px 4px 0;margin-left:-1px;}
+.sw-btn.active{background:#4a90d9;color:#fff;border-color:#4a90d9;z-index:1;position:relative;}
+
+/* Header */
+.header-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ti-number{font-size:15px;font-weight:600;color:#333;}
+.status-badge{display:inline-block;padding:3px 12px;border-radius:3px;font-size:12px;font-weight:500;margin-left:12px;}
+.status-pending{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;}
+.btn-print{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#666;transition:all .15s;margin-left:4px;}
+.btn-print:hover{border-color:#4a90d9;color:#4a90d9;background:#f5f9ff;}
+.header-actions{position:fixed;top:56px;right:24px;z-index:90;display:flex;gap:8px;background:#fff;padding:8px 12px;border-radius:0 0 8px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.org-info{display:flex;gap:24px;font-size:12px;color:#999;margin-bottom:16px;flex-wrap:wrap;}
+.org-info span{color:#333;}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo"><span style="font-size:18px;">🔶</span><span class="logo-text">Sales and Service</span></div>
+  <div class="right-area">
+    <span style="color:#666;cursor:pointer;">🔍</span>
+    <span style="color:#666;cursor:pointer;">⚙️</span>
+    <span style="color:#666;cursor:pointer;">🔔<span class="badge">99+</span></span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="avatar">朱</div>
+      <span style="font-size:12px;">朱晓然</span>
+      <span class="role-tag">Technical Manager (Region)</span>
+      <span style="font-size:11px;color:#999;">▼</span>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Buttons */
+.btn{padding:6px 16px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#333;transition:all .15s;}
+.btn:hover{border-color:#4a90d9;color:#4a90d9;}
+.btn-primary{background:#4a90d9;color:#fff;border-color:#4a90d9;}
+.btn-primary:hover{background:#3a7bc8;color:#fff;}
+
+/* Section */
+.section{margin-bottom:24px;scroll-margin-top:64px;}
+.section-title{font-size:13px;font-weight:600;color:#333;padding-left:10px;border-left:3px solid #4a90d9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,#e8e8e8,transparent);}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 20px;margin-bottom:16px;}
+.form-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.form-item{display:flex;flex-direction:column;gap:4px;}
+.form-item.span-2{grid-column:span 2;}
+.form-label{font-size:12px;color:#999;}
+.form-label .req{color:#ff4d4f;}
+.form-value{background:#f5f7fa;border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;font-size:12px;color:#333;min-height:32px;display:flex;align-items:center;}
+.form-value.tall{min-height:60px;align-items:flex-start;line-height:1.6;}
+textarea.form-input{width:100%;border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12px;min-height:80px;resize:vertical;outline:none;font-family:inherit;}
+textarea.form-input:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.1);}
+
+/* Table (match system style) */
+.data-table{width:100%;border-collapse:collapse;margin-bottom:0;}
+.data-table th{background:#f0f2f5;padding:8px 12px;text-align:left;font-size:12px;color:#666;font-weight:500;border-bottom:1px solid #e0e0e0;white-space:nowrap;}
+.data-table td{padding:8px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.data-table tr:hover td{background:#f8fafc;}
+.data-table .file-link{color:#4a90d9;cursor:pointer;font-size:11px;text-decoration:none;}
+.data-table .file-link:hover{text-decoration:underline;}
+.data-table .file-cell{display:flex;flex-direction:column;gap:2px;}
+.data-table .file-row{display:flex;align-items:center;gap:6px;}
+.data-table .icon-sm{font-size:12px;color:#4a90d9;cursor:pointer;}
+
+/* Discussion list (match Supplementary explanation style) */
+.disc-list{margin-bottom:16px;}
+.disc-item{padding:12px 0;border-bottom:1px solid #f0f0f0;}
+.disc-item:last-child{border-bottom:none;}
+.disc-meta{display:flex;gap:16px;font-size:12px;margin-bottom:6px;flex-wrap:wrap;}
+.disc-meta b{font-weight:600;color:#333;}
+.disc-meta span{color:#666;}
+.disc-content{font-size:12px;color:#555;line-height:1.7;margin-bottom:4px;}
+.disc-content b{font-weight:600;color:#333;}
+.disc-files{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.disc-files b{font-weight:600;color:#333;font-size:12px;}
+.disc-file-link{font-size:11px;color:#4a90d9;cursor:pointer;text-decoration:none;}
+.disc-file-link:hover{text-decoration:underline;}
+
+/* Comment input (match system Supplementary explanation style) */
+.comment-area{border:1px solid #e8e8e8;border-radius:4px;padding:16px;background:#fff;}
+.comment-area .ca-label{font-size:12px;font-weight:600;color:#333;margin-bottom:8px;}
+.comment-area textarea{width:100%;border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12px;min-height:60px;resize:vertical;outline:none;font-family:inherit;}
+.comment-area textarea:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.1);}
+.comment-area .ca-hint{text-align:right;font-size:11px;color:#bbb;margin-top:4px;}
+.comment-area .ca-upload-label{font-size:12px;font-weight:600;color:#333;margin:12px 0 8px;}
+.file-drop{border:1px dashed #d9d9d9;border-radius:6px;padding:20px;text-align:center;color:#999;font-size:12px;cursor:pointer;transition:all .15s;}
+.file-drop:hover{border-color:#4a90d9;background:#fafcff;}
+.file-drop .drop-icon{font-size:28px;color:#4a90d9;margin-bottom:4px;}
+.file-drop .drop-hint{font-size:11px;color:#bbb;margin-top:4px;}
+.text-link{color:#4a90d9;cursor:pointer;}
+.ca-footer{display:flex;justify-content:flex-end;margin-top:12px;}
+
+/* Modal */
+.modal-mask{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;justify-content:center;align-items:center;}
+.modal-mask.show{display:flex;}
+.modal{background:#fff;border-radius:8px;width:560px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e8e8e8;}
+.modal-header h3{font-size:15px;font-weight:600;color:#333;margin:0;}
+.modal-close{font-size:18px;color:#999;cursor:pointer;background:none;border:none;padding:0;line-height:1;}
+.modal-close:hover{color:#333;}
+.modal-body{padding:20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:8px;}
+
+/* Footer */
+.page-footer{position:fixed;bottom:0;left:160px;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:10px 24px;display:flex;justify-content:flex-end;gap:8px;box-shadow:0 -2px 8px rgba(0,0,0,.04);z-index:50;}
+
+/* Design Note */
+.design-note{background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#ad6800;line-height:1.6;}
+.design-note strong{color:#874d00;}
+
+/* Page toggle */
+.page-view{display:none;}
+.page-view.active{display:block;}
+</style>
+
+<div class="page-wrap">
+  <!-- Left Nav -->
+  <nav class="anchor-nav" id="anchorNav">
+    <div id="nav-register" class="nav-group">
+      <a href="#sec-basic" class="active">Basic Information</a>
+      <a href="#sec-fault">Fault Information</a>
+      <a href="#sec-history">Approval History</a>
+      <a href="#sec-discussion">Discussion</a>
+    </div>
+    <div id="nav-reply" class="nav-group" style="display:none;">
+      <a href="#sec-basic-r" class="active">Basic Information</a>
+      <a href="#sec-fault-r">Fault Information</a>
+      <a href="#sec-history-r">Approval History</a>
+      <a href="#sec-discussion-r">Discussion</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <!-- Page Switcher -->
+    <div class="page-switcher">
+      <div class="sw-btn active" onclick="switchPage('register')">Technical Inquiry (提单页)</div>
+      <div class="sw-btn" onclick="switchPage('reply')">Technical Inquiry Reply (审核页)</div>
+    </div>
+
+    <!-- ======================== PAGE 1: 提单页 ======================== -->
+    <div class="page-view active" id="page-register">
+      <div class="design-note"><strong>📐 提单页</strong> — Dealer 视角。无 Review Comments。Approval History 和 Discussion 按时间倒序排列。</div>
+
+      <div class="header-bar">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="ti-number">Technical Inquiry No.: TSAFDK1001260401002</div>
+          <span class="status-badge status-pending">Pending(Region)</span>
+          <button class="btn-print" onclick="window.print()" title="Print">🖨️ Print</button>
+        </div>
+        <div class="header-actions"><button class="btn">Service History</button></div>
+      </div>
+      <div class="org-info">
+        <div>Founder Organization Code: <span>AFDK1001</span></div>
+        <div>Founder Organization: <span>XPENG Service Odense</span></div>
+        <div>SAP Code: <span>4003306</span></div>
+        <div>Company: <span>Ejner Hessel A/S(Odense)</span></div>
+      </div>
+
+      <!-- Basic Information -->
+      <div class="section" id="sec-basic">
+        <div class="section-title">Basic Information</div>
+        <div class="form-grid">
+          <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP64J1TB004385</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">4</div></div>
+          <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+          <div class="form-item"><div class="form-label">Exterior Color</div><div class="form-value">Graphite Gray</div></div>
+          <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2026-01-08</div></div>
+          <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">—</div></div>
+        </div>
+      </div>
+
+      <!-- Fault Information -->
+      <div class="section" id="sec-fault">
+        <div class="section-title">Fault Information</div>
+        <div class="form-grid">
+          <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">DTC found under PDI</div></div>
+          <div class="form-item" style="grid-column:span 2;"></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[A] Important malfunction</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value">DTC false trigger-309844</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2026-03-30 20:00</div></div>
+          <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Sub-system</div><div class="form-value">Smart Cabin</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VOR Case</div><div class="form-value">No</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall">DTC found under PDI</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall">Everything works fine in car</div></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall">What do i do?</div></div>
+          <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall">Car is a show car not customer</div></div>
+        </div>
+      </div>
+
+      <!-- Approval History (表格，倒序) -->
+      <div class="section" id="sec-history">
+        <div class="section-title">Approval History</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:30px;">No.</th>
+              <th>Operator</th>
+              <th>Operation Role</th>
+              <th>Operation Time</th>
+              <th>Status</th>
+              <th>Comments</th>
+              <th>Files ⬇</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2</td>
+              <td>Rado Peric</td>
+              <td>Technical Manager (NSC)</td>
+              <td>2026-04-01 13:25:12</td>
+              <td>Pending(Region)</td>
+              <td>Are these DTC's normal for a P7+ or should they be able to delete them? the Vin nameplate missing is on a separate TI</td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">No Vin 01 04 2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>Olver Svain Hojland</td>
+              <td>Service Store Manager (Dealer)</td>
+              <td>2026-04-01 13:14:27</td>
+              <td>Pending(NSC)</td>
+              <td>—</td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">No Vin 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                  <div class="file-row"><a class="file-link">DTC 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Discussion (倒序，风格贴合 Supplementary explanation) -->
+      <div class="section" id="sec-discussion">
+        <div class="section-title">Discussion</div>
+        <div class="disc-list">
+          <div class="disc-item">
+            <div class="disc-meta">
+              <span><b>Commentator:</b> 朱晓然</span>
+              <span><b>Role:</b> Technical Manager (Region)</span>
+              <span><b>Comment time:</b> 2026-04-02 09:45:33</span>
+            </div>
+            <div class="disc-content"><b>Comments:</b> Confirmed. A technical bulletin will be issued next week covering this DTC false trigger issue for all P7+ January production batch.</div>
+          </div>
+          <div class="disc-item">
+            <div class="disc-meta">
+              <span><b>Commentator:</b> Rado Peric</span>
+              <span><b>Role:</b> Technical Manager (NSC)</span>
+              <span><b>Comment time:</b> 2026-04-01 15:12:08</span>
+            </div>
+            <div class="disc-content"><b>Comments:</b> I've checked with the engineering team. These DTCs are known false triggers on P7+ models produced in January 2026. You can safely clear them.</div>
+            <div class="disc-files"><b>Attachment:</b> <a class="disc-file-link">DTC_Analysis_Report.pdf</a> <span style="font-size:11px;color:#4a90d9;cursor:pointer;">Preview</span> <span style="font-size:11px;color:#4a90d9;cursor:pointer;">Download</span></div>
+          </div>
+          <div class="disc-item">
+            <div class="disc-meta">
+              <span><b>Commentator:</b> Olver Svain Hojland</span>
+              <span><b>Role:</b> Service Store Manager (Dealer)</span>
+              <span><b>Comment time:</b> 2026-04-01 14:30:15</span>
+            </div>
+            <div class="disc-content"><b>Comments:</b> We noticed the DTC appeared right after PDI. The car has not been driven by any customer yet. Is this something we should worry about or can we just clear the codes?</div>
+          </div>
+        </div>
+        <!-- Comment Input -->
+        <div class="comment-area">
+          <div class="ca-label">Comments:</div>
+          <textarea placeholder="Please enter the supplementary explanation content"></textarea>
+          <div class="ca-hint">0/1000</div>
+          <div class="ca-upload-label">Attachment:</div>
+          <div class="file-drop">
+            <div class="drop-icon">⬆️</div>
+            <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+            <div class="drop-hint">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div>
+          </div>
+          <div class="ca-footer"><button class="btn">Add Comments</button></div>
+        </div>
+      </div>
+    </div>
+""
+
+    <!-- ======================== PAGE 2: 审核页 ======================== -->
+    <div class="page-view" id="page-reply">
+      <div class="design-note"><strong>📐 审核页</strong> — NSC / Region 视角。点击右上角 Reply / Consult Region 按钮弹窗填写意见，无需在页面中嵌入 Review Comments 区域，页面布局与提单页一致。</div>
+
+      <div class="header-bar">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="ti-number">Technical Inquiry No.: TSAFDK1001260401002</div>
+          <span class="status-badge status-pending">Pending(Region)</span>
+          <button class="btn-print" onclick="window.print()" title="Print">🖨️ Print</button>
+        </div>
+        <div class="header-actions">
+          <button class="btn">Service History</button>
+          <button class="btn btn-primary" onclick="openModal('reply')">Reply</button>
+          <button class="btn" onclick="openModal('consult')">Consult Region</button>
+          <button class="btn">Apply for pre closure</button>
+          <button class="btn">Apply for closing</button>
+        </div>
+      </div>
+      <div class="org-info">
+        <div>Founder Organization Code: <span>AFDK1001</span></div>
+        <div>Founder Organization: <span>XPENG Service Odense</span></div>
+        <div>SAP Code: <span>4003306</span></div>
+        <div>Company: <span>Ejner Hessel A/S(Odense)</span></div>
+      </div>
+
+      <!-- Basic Information -->
+      <div class="section" id="sec-basic-r">
+        <div class="section-title">Basic Information</div>
+        <div class="form-grid">
+          <div class="form-item"><div class="form-label">Job Order No.</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VIN</div><div class="form-value">LTNSP64J1TB004385</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Mileage (km)</div><div class="form-value">4</div></div>
+          <div class="form-item"><div class="form-label">Model</div><div class="form-value">P7+ RWD Long Range</div></div>
+          <div class="form-item"><div class="form-label">Exterior Color</div><div class="form-value">Graphite Gray</div></div>
+          <div class="form-item"><div class="form-label">Production Date</div><div class="form-value">2026-01-08</div></div>
+          <div class="form-item"><div class="form-label">Warranty Starting Date</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label">Warranty Period</div><div class="form-value">—</div></div>
+        </div>
+      </div>
+
+      <!-- Fault Information -->
+      <div class="section" id="sec-fault-r">
+        <div class="section-title">Fault Information</div>
+        <div class="form-grid">
+          <div class="form-item span-2"><div class="form-label"><span class="req">*</span> Subject</div><div class="form-value">DTC found under PDI</div></div>
+          <div class="form-item" style="grid-column:span 2;"></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Tier</div><div class="form-value">[A] Important malfunction</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Description</div><div class="form-value">DTC false trigger-309844</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Date</div><div class="form-value">2026-03-30 20:00</div></div>
+          <div class="form-item"><div class="form-label">In-store Date</div><div class="form-value">—</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Sub-system</div><div class="form-value">Smart Cabin</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> VOR Case</div><div class="form-value">No</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Applied By</div><div class="form-value">Rado Peric</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Applicant Phone</div><div class="form-value">4917789561754</div></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Fault Described by Customer</div><div class="form-value tall">DTC found under PDI</div></div>
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Preliminary Check</div><div class="form-value tall">Everything works fine in car</div></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-item"><div class="form-label"><span class="req">*</span> Diagnosis Results</div><div class="form-value tall">What do i do?</div></div>
+          <div class="form-item"><div class="form-label">Actions Taken</div><div class="form-value tall">Car is a show car not customer</div></div>
+        </div>
+      </div>
+
+      <!-- Approval History (表格，倒序) -->
+      <div class="section" id="sec-history-r">
+        <div class="section-title">Approval History</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:30px;">No.</th>
+              <th>Operator</th>
+              <th>Operation Role</th>
+              <th>Operation Time</th>
+              <th>Status</th>
+              <th>Comments</th>
+              <th>Files ⬇</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2</td>
+              <td>Rado Peric</td>
+              <td>Technical Manager (NSC)</td>
+              <td>2026-04-01 13:25:12</td>
+              <td>Pending(Region)</td>
+              <td>Are these DTC's normal for a P7+ or should they be able to delete them? the Vin nameplate missing is on a separate TI</td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">No Vin 01 04 2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>Olver Svain Hojland</td>
+              <td>Service Store Manager (Dealer)</td>
+              <td>2026-04-01 13:14:27</td>
+              <td>Pending(NSC)</td>
+              <td>—</td>
+              <td>
+                <div class="file-cell">
+                  <div class="file-row"><a class="file-link">No Vin 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                  <div class="file-row"><a class="file-link">DTC 01-04-2026.jpeg</a> <span class="icon-sm">👁</span> <span class="icon-sm">⬇</span></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Discussion (倒序) -->
+      <div class="section" id="sec-discussion-r">
+        <div class="section-title">Discussion</div>
+        <div class="disc-list">
+          <div class="disc-item">
+            <div class="disc-meta">
+              <span><b>Commentator:</b> 朱晓然</span>
+              <span><b>Role:</b> Technical Manager (Region)</span>
+              <span><b>Comment time:</b> 2026-04-02 09:45:33</span>
+            </div>
+            <div class="disc-content"><b>Comments:</b> Confirmed. A technical bulletin will be issued next week covering this DTC false trigger issue for all P7+ January production batch.</div>
+          </div>
+          <div class="disc-item">
+            <div class="disc-meta">
+              <span><b>Commentator:</b> Rado Peric</span>
+              <span><b>Role:</b> Technical Manager (NSC)</span>
+              <span><b>Comment time:</b> 2026-04-01 15:12:08</span>
+            </div>
+            <div class="disc-content"><b>Comments:</b> I've checked with the engineering team. These DTCs are known false triggers on P7+ models produced in January 2026. You can safely clear them.</div>
+            <div class="disc-files"><b>Attachment:</b> <a class="disc-file-link">DTC_Analysis_Report.pdf</a> <span style="font-size:11px;color:#4a90d9;cursor:pointer;">Preview</span> <span style="font-size:11px;color:#4a90d9;cursor:pointer;">Download</span></div>
+          </div>
+          <div class="disc-item">
+            <div class="disc-meta">
+              <span><b>Commentator:</b> Olver Svain Hojland</span>
+              <span><b>Role:</b> Service Store Manager (Dealer)</span>
+              <span><b>Comment time:</b> 2026-04-01 14:30:15</span>
+            </div>
+            <div class="disc-content"><b>Comments:</b> We noticed the DTC appeared right after PDI. The car has not been driven by any customer yet. Is this something we should worry about or can we just clear the codes?</div>
+          </div>
+        </div>
+        <div class="comment-area">
+          <div class="ca-label">Comments:</div>
+          <textarea placeholder="Please enter the supplementary explanation content"></textarea>
+          <div class="ca-hint">0/1000</div>
+          <div class="ca-upload-label">Attachment:</div>
+          <div class="file-drop">
+            <div class="drop-icon">⬆️</div>
+            <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+            <div class="drop-hint">Supported: jpg, png, jpeg, mp4, rar, zip, pdf, ppt</div>
+          </div>
+          <div class="ca-footer"><button class="btn">Add Comments</button></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="page-footer" id="pageFooter"><button class="btn">Edit</button></div>
+
+<!-- Reply Modal -->
+<div class="modal-mask" id="modal-reply">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Reply</h3>
+      <button class="modal-close" onclick="closeModal('reply')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="ca-label" style="margin-bottom:8px;"><span class="req">*</span> Comments</div>
+      <textarea class="form-input" placeholder="Enter your review comments..." style="min-height:100px;"></textarea>
+      <div class="ca-hint">0/2000</div>
+      <div class="ca-upload-label">Attachment:</div>
+      <div class="file-drop">
+        <div class="drop-icon">⬆️</div>
+        <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+        <div class="drop-hint">Supported: doc, docx, xls, xlsx, pdf, txt, jpg, png, mp4, rar, eml, jpeg</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('reply')">Cancel</button>
+      <button class="btn btn-primary">Submit Reply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Consult Region Modal -->
+<div class="modal-mask" id="modal-consult">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Consult Region</h3>
+      <button class="modal-close" onclick="closeModal('consult')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="ca-label" style="margin-bottom:8px;"><span class="req">*</span> Comments</div>
+      <textarea class="form-input" placeholder="Enter comments for Region consultation..." style="min-height:100px;"></textarea>
+      <div class="ca-hint">0/2000</div>
+      <div class="ca-upload-label">Attachment:</div>
+      <div class="file-drop">
+        <div class="drop-icon">⬆️</div>
+        <div>Drag & Drop your files here, or <span class="text-link">Browse files</span></div>
+        <div class="drop-hint">Supported: doc, docx, xls, xlsx, pdf, txt, jpg, png, mp4, rar, eml, jpeg</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('consult')">Cancel</button>
+      <button class="btn btn-primary">Submit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPage(p){
+  document.querySelectorAll('.page-view').forEach(e=>e.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.sw-btn').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.sw-btn')[p==='register'?0:1].classList.add('active');
+  document.getElementById('nav-register').style.display=p==='register'?'block':'none';
+  document.getElementById('nav-reply').style.display=p==='reply'?'block':'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function openModal(type){document.getElementById('modal-'+type).classList.add('show');}
+function closeModal(type){document.getElementById('modal-'+type).classList.remove('show');}
+// Close modal on mask click
+document.querySelectorAll('.modal-mask').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+});
+// Anchor scroll
+document.querySelectorAll('.anchor-nav a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+// Highlight on scroll
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting){
+      const id=en.target.id;
+      document.querySelectorAll('.anchor-nav a').forEach(a=>{
+        const h=a.getAttribute('href').replace('#','');
+        a.classList.toggle('active',h===id||h===id.replace(/-r$/,''));
+      });
+    }
+  });
+},{rootMargin:'-80px 0px -60% 0px'});
+document.querySelectorAll('.section[id]').forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

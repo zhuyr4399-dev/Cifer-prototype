@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="x5-fullscreen" content="true">
+  <meta name="full-screen" content="yes">
+  <meta name="theme-color" content="#ffffff">
+  <title>车辆检查报告</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', PingFang SC, 'Microsoft YaHei', sans-serif;
+    }
+    .app-wrapper {
+      width: 100%;
+      min-height: 100vh;
+      max-width: 375px;
+      margin: 0 auto;
+      background: #fff;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+  <!-- 状态栏 -->
+  <div class="sticky top-0 z-50 bg-white px-4 py-2 pb-0 flex items-center justify-between text-sm">
+    <div>9:41</div>
+    <div class="flex gap-1">
+      <div class="w-6 h-3 border border-gray-400 rounded-sm"></div>
+      <div class="w-6 h-3 border border-gray-400 rounded-sm"></div>
+      <div class="w-6 h-3 border border-gray-400 rounded-sm"></div>
+    </div>
+  </div>
+
+  <!-- 标题栏 -->
+  <div class="sticky top-[24px] z-50 bg-white px-4 py-4 flex items-center border-b border-gray-200">
+    <i class="fa fa-chevron-left w-6 h-6"></i>
+    <div class="flex-1 text-center font-medium text-lg">车辆检查报告</div>
+    <div class="w-8"></div>
+  </div>
+
+  <!-- 车辆信息 -->
+  <div class="bg-white px-4 py-3">
+    <div class="bg-blue-50 rounded-lg border border-gray-200 p-4 relative overflow-hidden">
+      <div class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-200 font-bold text-4xl opacity-30 -rotate-15">SERVICE</div>
+      <div class="relative">
+        <div class="text-xl font-bold mb-2">粤A B987ER</div>
+        <div class="text-sm text-gray-600 mb-1">G9 650性能版 Pro</div>
+        <div class="text-sm text-gray-600 mb-1">日期：2023/12/9</div>
+        <div class="text-sm text-gray-600 mb-1">服务顾问：王小二</div>
+        <div class="text-sm text-gray-600">服务门店：广州锦泰服务中心</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div class="bg-white px-4 py-3">
+    <div class="bg-white rounded-lg border border-gray-200 p-4 flex">
+      <div class="flex-1 text-center">
+        <div class="text-3xl font-bold text-red-500 mb-1">6</div>
+        <div class="text-sm text-red-600">建议处理</div>
+      </div>
+      <div class="w-px bg-gray-200"></div>
+      <div class="flex-1 text-center">
+        <div class="text-3xl font-bold mb-1">14</div>
+        <div class="text-sm text-gray-600">检测正常</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 标签导航 → 已修复吸顶 -->
+  <div class="sticky top-[80px] z-40 bg-white border-b border-gray-200 shadow-sm">
+    <div id="tabBar" class="flex gap-2 px-4 py-3 overflow-x-auto scroll-smooth scrollbar-hide">
+      <button data-target="paint-front-left" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-500 bg-blue-50 scale-105">
+        <span class="text-sm font-medium whitespace-nowrap">左前翼子板漆面</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-red-500 bg-red-50">检测异常</span>
+      </button>
+      <button data-target="tire-front-right" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">右前轮胎更换</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-red-500 bg-red-50">检测异常</span>
+      </button>
+      <button data-target="brake-pad-front-right" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">右前刹车片更换</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-red-500 bg-red-50">检测异常</span>
+      </button>
+      <button data-target="air-filter" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">空调滤芯更换</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-red-500 bg-red-50">已过期</span>
+      </button>
+      <button data-target="battery-oil" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">电瓶润滑油更换</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-red-500 bg-red-50">即将到期</span>
+      </button>
+      <button data-target="brake-fluid" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">制动液更换</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-red-500 bg-red-50">上次未做</span>
+      </button>
+      <button data-target="brake-disk-repaired" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">右前制动盘</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-green-600 bg-green-50">已修复</span>
+      </button>
+      <button data-target="brake-pad-normal" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">右前制动片</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-green-600 bg-green-50">正常</span>
+      </button>
+      <button data-target="tire-tread" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">右前轮胎胎纹</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-green-600 bg-green-50">正常</span>
+      </button>
+      <button data-target="battery" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">蓄电池</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-green-600 bg-green-50">正常</span>
+      </button>
+      <button data-target="dashboard" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">仪表指示灯</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-green-600 bg-green-50">正常</span>
+      </button>
+      <button data-target="coolant" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">更换冷却液</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-green-600 bg-green-50">正常</span>
+      </button>
+      <button data-target="paint-front-right" class="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 bg-white">
+        <span class="text-sm font-medium whitespace-nowrap">右前翼子板漆面</span>
+        <span class="text-xs px-2 py-0.5 rounded whitespace-nowrap text-green-600 bg-green-50">正常</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="px-4 pt-3 pb-10">
+    <!-- 左前翼子板漆面 -->
+    <div id="paint-front-left" data-section-id="paint-front-left" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">左前翼子板漆面</h3>
+        <span class="text-xs px-2 py-1 rounded text-red-500 bg-red-50">检测异常</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700"><span class="text-gray-500">损伤类型：</span>外部损伤</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">损伤情况：</span>划痕</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">备注：</span>车门边有明显划痕，建议处理</div>
+        <div>
+          <div class="text-sm text-gray-500 mb-2">损伤照片</div>
+          <div class="flex gap-2">
+            <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">damage1.jpg</div>
+            <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">damage2.jpg</div>
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 mt-4">
+          <div class="text-sm font-medium">漆面修复服务</div>
+          <div class="text-xs text-gray-500">建议处理</div>
+        </div>
+        <div class="mt-6 pt-6 border-t">
+          <div class="mb-4">
+            <div class="text-sm font-medium mb-2">检测点详情</div>
+            <div class="text-sm text-gray-700 leading-relaxed">车辆使用超过60000公里或3年以上时，刹车盘和制动片的损耗会较为严重。如发现刹车盘有明显的磨损痕迹或制动力减弱，需尽快进行更换以保证行车安全。</div>
+          </div>
+          <div class="mb-4">
+            <div class="bg-gray-100 rounded-lg p-3">
+              <div class="aspect-video bg-gray-200 rounded flex items-center justify-center">
+                <div class="text-center">
+                  <div class="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded"></div>
+                  <div class="text-xs text-gray-500">检测图片</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm font-medium mb-2">质保说明</div>
+            <div class="text-sm text-gray-700 leading-relaxed mb-3">如采用原厂配件进行更换，制动系统享有原厂标准质保。在正常使用条件下，质保期为1年或2万公里（以先到者为准）。非正常磨损、事故或改装导致的故障不在质保范围内。</div>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">质保凭证1</div>
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center relative">
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                  </div>
+                  <div class="text-xs text-gray-400">质保视频</div>
+                </div>
+              </div>
+              <div class="bg-gray-100 rounded-lg aspect-video flex items-center justify-center relative">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                </div>
+                <div class="text-xs text-gray-400">操作视频</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右前轮胎更换 -->
+    <div id="tire-front-right" data-section-id="tire-front-right" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">右前轮胎更换</h3>
+        <span class="text-xs px-2 py-1 rounded text-red-500 bg-red-50">检测异常</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700">前 1.8mm; 后 3.2mm</div>
+        <div class="flex gap-2">
+          <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">tire1.jpg</div>
+          <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">tire2.jpg</div>
+        </div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">问题描述：</span>右前轮胎胎纹深度1.8mm，低于安全标准3mm</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">技师建议：</span>建议尽快更换，避免湿滑路面安全隐患</div>
+        <div class="bg-gray-50 rounded-lg p-3 mt-4">
+          <div class="text-sm font-medium">轮胎更换服务</div>
+          <div class="text-xs text-gray-500">建议处理</div>
+        </div>
+        <div class="mt-6 pt-6 border-t">
+          <div class="mb-4">
+            <div class="text-sm font-medium mb-2">检测点详情</div>
+            <div class="text-sm text-gray-700 leading-relaxed">车辆使用超过60000公里或3年以上时，刹车盘和制动片的损耗会较为严重。如发现刹车盘有明显的磨损痕迹或制动力减弱，需尽快进行更换以保证行车安全。</div>
+          </div>
+          <div class="mb-4">
+            <div class="bg-gray-100 rounded-lg p-3">
+              <div class="aspect-video bg-gray-200 rounded flex items-center justify-center">
+                <div class="text-center">
+                  <div class="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded"></div>
+                  <div class="text-xs text-gray-500">检测图片</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm font-medium mb-2">质保说明</div>
+            <div class="text-sm text-gray-700 leading-relaxed mb-3">如采用原厂配件进行更换，制动系统享有原厂标准质保。在正常使用条件下，质保期为1年或2万公里（以先到者为准）。非正常磨损、事故或改装导致的故障不在质保范围内。</div>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">质保凭证1</div>
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center relative">
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                  </div>
+                  <div class="text-xs text-gray-400">质保视频</div>
+                </div>
+              </div>
+              <div class="bg-gray-100 rounded-lg aspect-video flex items-center justify-center relative">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                </div>
+                <div class="text-xs text-gray-400">操作视频</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右前刹车片更换 -->
+    <div id="brake-pad-front-right" data-section-id="brake-pad-front-right" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">右前刹车片更换</h3>
+        <span class="text-xs px-2 py-1 rounded text-red-500 bg-red-50">检测异常</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700">前 2.1mm; 后 2.8mm</div>
+        <div class="flex gap-2">
+          <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">brake1.jpg</div>
+          <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">brake2.jpg</div>
+        </div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">问题描述：</span>右前刹车片磨损严重，厚度低于安全标准3mm</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">技师建议：</span>建议立即更换刹车片，确保行车安全</div>
+        <div class="bg-gray-50 rounded-lg p-3 mt-4">
+          <div class="text-sm font-medium">刹车片更换服务</div>
+          <div class="text-xs text-gray-500">建议处理</div>
+        </div>
+        <div class="mt-6 pt-6 border-t">
+          <div class="mb-4">
+            <div class="text-sm font-medium mb-2">检测点详情</div>
+            <div class="text-sm text-gray-700 leading-relaxed">车辆使用超过60000公里或3年以上时，刹车盘和制动片的损耗会较为严重。如发现刹车盘有明显的磨损痕迹或制动力减弱，需尽快进行更换以保证行车安全。</div>
+          </div>
+          <div class="mb-4">
+            <div class="bg-gray-100 rounded-lg p-3">
+              <div class="aspect-video bg-gray-200 rounded flex items-center justify-center">
+                <div class="text-center">
+                  <div class="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded"></div>
+                  <div class="text-xs text-gray-500">检测图片</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm font-medium mb-2">质保说明</div>
+            <div class="text-sm text-gray-700 leading-relaxed mb-3">如采用原厂配件进行更换，制动系统享有原厂标准质保。在正常使用条件下，质保期为1年或2万公里（以先到者为准）。非正常磨损、事故或改装导致的故障不在质保范围内。</div>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">质保凭证1</div>
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center relative">
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                  </div>
+                  <div class="text-xs text-gray-400">质保视频</div>
+                </div>
+              </div>
+              <div class="bg-gray-100 rounded-lg aspect-video flex items-center justify-center relative">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                </div>
+                <div class="text-xs text-gray-400">操作视频</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 空调滤芯更换 -->
+    <div id="air-filter" data-section-id="air-filter" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">空调滤芯更换</h3>
+        <span class="text-xs px-2 py-1 rounded text-red-500 bg-red-50">已过期</span>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-gray-50 rounded-lg p-3 mt-4">
+          <div class="text-sm font-medium">空调滤芯更换服务</div>
+          <div class="text-xs text-gray-500">建议处理</div>
+        </div>
+        <div class="mt-6 pt-6 border-t">
+          <div class="mb-4">
+            <div class="text-sm font-medium mb-2">检测点详情</div>
+            <div class="text-sm text-gray-700 leading-relaxed">车辆使用超过60000公里或3年以上时，刹车盘和制动片的损耗会较为严重。如发现刹车盘有明显的磨损痕迹或制动力减弱，需尽快进行更换以保证行车安全。</div>
+          </div>
+          <div class="mb-4">
+            <div class="bg-gray-100 rounded-lg p-3">
+              <div class="aspect-video bg-gray-200 rounded flex items-center justify-center">
+                <div class="text-center">
+                  <div class="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded"></div>
+                  <div class="text-xs text-gray-500">检测图片</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm font-medium mb-2">质保说明</div>
+            <div class="text-sm text-gray-700 leading-relaxed mb-3">如采用原厂配件进行更换，制动系统享有原厂标准质保。在正常使用条件下，质保期为1年或2万公里（以先到者为准）。非正常磨损、事故或改装导致的故障不在质保范围内。</div>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">质保凭证1</div>
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center relative">
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                  </div>
+                  <div class="text-xs text-gray-400">质保视频</div>
+                </div>
+              </div>
+              <div class="bg-gray-100 rounded-lg aspect-video flex items-center justify-center relative">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                </div>
+                <div class="text-xs text-gray-400">操作视频</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 电瓶润滑油更换 -->
+    <div id="battery-oil" data-section-id="battery-oil" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">电瓶润滑油更换</h3>
+        <span class="text-xs px-2 py-1 rounded text-red-500 bg-red-50">即将到期</span>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-gray-50 rounded-lg p-3 mt-4">
+          <div class="text-sm font-medium">电瓶润滑油更换服务</div>
+          <div class="text-xs text-gray-500">建议处理</div>
+        </div>
+        <div class="mt-6 pt-6 border-t">
+          <div class="mb-4">
+            <div class="text-sm font-medium mb-2">检测点详情</div>
+            <div class="text-sm text-gray-700 leading-relaxed">车辆使用超过60000公里或3年以上时，刹车盘和制动片的损耗会较为严重。如发现刹车盘有明显的磨损痕迹或制动力减弱，需尽快进行更换以保证行车安全。</div>
+          </div>
+          <div class="mb-4">
+            <div class="bg-gray-100 rounded-lg p-3">
+              <div class="aspect-video bg-gray-200 rounded flex items-center justify-center">
+                <div class="text-center">
+                  <div class="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded"></div>
+                  <div class="text-xs text-gray-500">检测图片</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm font-medium mb-2">质保说明</div>
+            <div class="text-sm text-gray-700 leading-relaxed mb-3">如采用原厂配件进行更换，制动系统享有原厂标准质保。在正常使用条件下，质保期为1年或2万公里（以先到者为准）。非正常磨损、事故或改装导致的故障不在质保范围内。</div>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">质保凭证1</div>
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center relative">
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                  </div>
+                  <div class="text-xs text-gray-400">质保视频</div>
+                </div>
+              </div>
+              <div class="bg-gray-100 rounded-lg aspect-video flex items-center justify-center relative">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                </div>
+                <div class="text-xs text-gray-400">操作视频</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 制动液更换 -->
+    <div id="brake-fluid" data-section-id="brake-fluid" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">制动液更换</h3>
+        <span class="text-xs px-2 py-1 rounded text-red-500 bg-red-50">上次未做</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700"><span class="text-gray-500">问题描述：</span>上次保养时未进行制动液更换</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">技师建议：</span>建议本次更换制动液，保证制动系统正常</div>
+        <div class="bg-gray-50 rounded-lg p-3 mt-4">
+          <div class="text-sm font-medium">制动液更换服务</div>
+          <div class="text-xs text-gray-500">建议处理 · 上次检测 2025/10/15</div>
+        </div>
+        <div class="mt-6 pt-6 border-t">
+          <div class="mb-4">
+            <div class="text-sm font-medium mb-2">检测点详情</div>
+            <div class="text-sm text-gray-700 leading-relaxed">车辆使用超过60000公里或3年以上时，刹车盘和制动片的损耗会较为严重。如发现刹车盘有明显的磨损痕迹或制动力减弱，需尽快进行更换以保证行车安全。</div>
+          </div>
+          <div class="mb-4">
+            <div class="bg-gray-100 rounded-lg p-3">
+              <div class="aspect-video bg-gray-200 rounded flex items-center justify-center">
+                <div class="text-center">
+                  <div class="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded"></div>
+                  <div class="text-xs text-gray-500">检测图片</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm font-medium mb-2">质保说明</div>
+            <div class="text-sm text-gray-700 leading-relaxed mb-3">如采用原厂配件进行更换，制动系统享有原厂标准质保。在正常使用条件下，质保期为1年或2万公里（以先到者为准）。非正常磨损、事故或改装导致的故障不在质保范围内。</div>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">质保凭证1</div>
+                <div class="aspect-square bg-gray-100 rounded flex items-center justify-center relative">
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                  </div>
+                  <div class="text-xs text-gray-400">质保视频</div>
+                </div>
+              </div>
+              <div class="bg-gray-100 rounded-lg aspect-video flex items-center justify-center relative">
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-white bg-opacity-80"><i class="fa fa-play text-gray-800"></i></div>
+                </div>
+                <div class="text-xs text-gray-400">操作视频</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右前制动盘 -->
+    <div id="brake-disk-repaired" data-section-id="brake-disk-repaired" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">右前制动盘</h3>
+        <span class="text-xs px-2 py-1 rounded text-green-600 bg-green-50">已修复</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700">前 12mm; 后 14mm</div>
+        <div>
+          <div class="text-sm text-gray-700 font-medium mb-2">修复前</div>
+          <div class="flex gap-2">
+            <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">before1.jpg</div>
+            <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">before2.jpg</div>
+          </div>
+        </div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">问题描述：</span>制动盘磨损，已本次修复</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">技师建议：</span>已更换，建议定期检查</div>
+        <div>
+          <div class="text-sm text-gray-700 font-medium mb-2">修复凭证</div>
+          <div class="flex gap-2">
+            <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">after1.jpg</div>
+            <div class="flex-1 aspect-square bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">after2.jpg</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右前制动片 -->
+    <div id="brake-pad-normal" data-section-id="brake-pad-normal" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">右前制动片</h3>
+        <span class="text-xs px-2 py-1 rounded text-green-600 bg-green-50">正常</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700">前 6.5mm；后 7.2mm</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">检测结果：</span>厚度正常，无需更换</div>
+      </div>
+    </div>
+
+    <!-- 右前轮胎胎纹 -->
+    <div id="tire-tread" data-section-id="tire-tread" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">右前轮胎胎纹</h3>
+        <span class="text-xs px-2 py-1 rounded text-green-600 bg-green-50">正常</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700">深度：5.2mm（标准≥3mm）</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">检测结果：</span>胎纹深度正常</div>
+      </div>
+    </div>
+
+    <!-- 蓄电池 -->
+    <div id="battery" data-section-id="battery" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">蓄电池</h3>
+        <span class="text-xs px-2 py-1 rounded text-green-600 bg-green-50">正常</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700">SOH：82%</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">检测结果：</span>蓄电池健康度正常</div>
+      </div>
+    </div>
+
+    <!-- 仪表指示灯 -->
+    <div id="dashboard" data-section-id="dashboard" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">仪表指示灯</h3>
+        <span class="text-xs px-2 py-1 rounded text-green-600 bg-green-50">正常</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700"><span class="text-gray-500">检测结果：</span>所有指示灯工作正常</div>
+      </div>
+    </div>
+
+    <!-- 更换冷却液 -->
+    <div id="coolant" data-section-id="coolant" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">更换冷却液</h3>
+        <span class="text-xs px-2 py-1 rounded text-green-600 bg-green-50">正常</span>
+      </div>
+      <div class="space-y-4">
+        <div class="text-sm text-gray-700">冰点：-35°C</div>
+        <div class="text-sm text-gray-700"><span class="text-gray-500">检测结果：</span>冷却液状态正常</div>
+      </div>
+    </div>
+
+    <!-- 右前翼子板漆面 -->
+    <div id="paint-front-right" data-section-id="paint-front-right" class="py-6 border-b border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium">右前翼子板漆面</h3>
+        <span class="text-xs px-2 py-1 rounded text-green-600 bg-green-50">正常</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const tabs = document.querySelectorAll('#tabBar button');
+let activeId = 'paint-front-left';
+
+function setActive(id) {
+  activeId = id;
+  tabs.forEach(t => {
+    const target = t.getAttribute('data-target');
+    if (target === id) {
+      t.classList.add('border-blue-500','bg-blue-50','scale-105');
+      t.classList.remove('border-gray-300','bg-white');
+    } else {
+      t.classList.remove('border-blue-500','bg-blue-50','scale-105');
+      t.classList.add('border-gray-300','bg-white');
+    }
+  });
+  const container = document.getElementById('tabBar');
+  const btn = document.querySelector(`[data-target="${id}"]`);
+  if (btn && container) {
+    const left = btn.offsetLeft - container.clientWidth/2 + btn.clientWidth/2;
+    container.scrollTo({ left, behavior: 'smooth' });
+  }
+}
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const id = tab.getAttribute('data-target');
+    const el = document.getElementById(id);
+    if (el) {
+      window.scrollTo({ top: el.offsetTop - 200, behavior: 'smooth' });
+      setActive(id);
+    }
+  });
+});
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.getAttribute('data-section-id');
+      if (id && id !== activeId) setActive(id);
+    }
+  });
+}, { rootMargin: '-120px 0px -50% 0px', threshold: 0 });
+
+document.querySelectorAll('[data-section-id]').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
